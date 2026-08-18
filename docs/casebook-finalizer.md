@@ -37,7 +37,7 @@ The manifest is written **last**. Its presence is the readiness signal. A partia
 - exactly one PDF artifact and one JPEG preview artifact;
 - for each artifact: output filename, media type, exact decoded byte size, SHA-256, and ordered chunk filenames.
 
-The finalizer rejects unknown fields, path traversal, mismatched issue/branch IDs, invalid chunk names, duplicate outputs/chunks, invalid hashes, artifacts larger than 20 MiB, or a handoff that does not explicitly record successful visual inspection.
+The finalizer rejects unknown fields, path traversal, symlinked handoff/manifest/chunk/`issue.yml` inputs, mismatched issue/branch IDs, invalid chunk names, chunks larger than 16,000 characters, duplicate outputs/chunks, invalid hashes, artifacts larger than 20 MiB, or a handoff that does not explicitly record successful visual inspection.
 
 ## Mechanical PDF checks
 
