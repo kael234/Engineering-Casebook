@@ -51,7 +51,6 @@ jobs:
           issue_rel = Path('issues/ISSUE-005-nothing-is-secondary')
           issue = root / issue_rel
           handoff = issue / '.handoff'
-
           if handoff.is_symlink() or not handoff.is_dir():
               raise SystemExit('handoff directory missing or unsafe')
 
@@ -82,7 +81,6 @@ jobs:
 
           pdf = decode('pdf', pdf_chunks)
           preview = decode('preview', preview_chunks)
-
           if not pdf.startswith(b'%PDF-'):
               raise SystemExit('reconstructed PDF magic invalid')
           if not preview.startswith(b'\xff\xd8\xff') or not preview.endswith(b'\xff\xd9'):
@@ -99,27 +97,11 @@ jobs:
               'issue_dir': issue_rel.as_posix(),
               'visual_inspection': {'passed': True, 'page_count': 3},
               'artifacts': [
-                  {
-                      'role': 'pdf',
-                      'output': 'ISSUE-005-nothing-is-secondary.pdf',
-                      'media_type': 'application/pdf',
-                      'byte_size': len(pdf),
-                      'sha256': pdf_sha,
-                      'chunks': [p.name for p in pdf_chunks],
-                  },
-                  {
-                      'role': 'preview',
-                      'output': 'preview.jpg',
-                      'media_type': 'image/jpeg',
-                      'byte_size': len(preview),
-                      'sha256': preview_sha,
-                      'chunks': [p.name for p in preview_chunks],
-                  },
+                  {'role': 'pdf', 'output': 'ISSUE-005-nothing-is-secondary.pdf', 'media_type': 'application/pdf', 'byte_size': len(pdf), 'sha256': pdf_sha, 'chunks': [p.name for p in pdf_chunks]},
+                  {'role': 'preview', 'output': 'preview.jpg', 'media_type': 'image/jpeg', 'byte_size': len(preview), 'sha256': preview_sha, 'chunks': [p.name for p in preview_chunks]},
               ],
           }
-          manifest_path = handoff / 'manifest.json'
-          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-          print(f'Wrote {manifest_path}')
+          (handoff / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
           PY
 
       - name: Run trusted Casebook Finalizer
@@ -141,3 +123,5 @@ jobs:
           git -C publication rm -- .github/workflows/issue005-handoff-salvage.yml
           git -C publication commit -m 'build: finalize ISSUE-005'
           git -C publication push origin HEAD:publish/issue-005-2026-08-18
+
+# retrigger after creation
