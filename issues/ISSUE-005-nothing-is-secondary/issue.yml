@@ -4,10 +4,10 @@ number: 5
 title: Nothing Is Secondary
 publication_date: 2026-08-18
 revision: 1
-status: draft
+status: published
 page_count: 3
-original_format: magazine_v3_diagnostic
-diagnostic: true
+original_format: magazine_v3
+diagnostic: false
 slots:
   - {role: deep_dive, case_id: CASE-018}
   - {role: site_problem, case_id: CASE-019}
@@ -25,4 +25,12 @@ assets:
   - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
   - assets/CASE-021-fig-01-instrumented-response.svg
   - assets/CASE-022-fig-01-mse-wall-system.svg
-note: Checkpoint F generated a valid local PDF and preview, but the connected low-level Git blob upload produced truncated binary blobs on the branch. The invalid diagnostic blobs are intentionally not registered as the issue PDF or preview.
+note: Binary artifacts finalized and mechanically validated by GitHub Actions.
+pdf:
+  path: ISSUE-005-nothing-is-secondary.pdf
+  sha256: d404c47d8e9d1bbb2bef558b1d7a3344478256270f3ec6f2be28e6bd7bcbea08
+  byte_size: 63559
+preview:
+  path: preview.jpg
+  sha256: 193f513bf5c50dbd27bab3d4e3a115eac1c994d91db9b5251ffc356e873ae5cb
+  byte_size: 337913
