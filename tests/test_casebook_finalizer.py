@@ -345,3 +345,74 @@ class PopplerParsingTests(unittest.TestCase):
     def test_parse_page_size_accepts_numbered_pdfinfo_label(self):
         output = "Pages:           3\nPage    1 size:  595.276 x 841.89 pts (A4)\n"
         self.assertEqual(finalizer._parse_page_size(output), (595.276, 841.89))
+
+
+class TransportBoundaryTests(unittest.TestCase):
+    def test_reconstruction_rejects_chunk_over_16000_characters(self):
+        with tempfile.TemporaryDirectory() as td:
+            issue_dir = pathlib.Path(td)
+            handoff = issue_dir / ".handoff"
+            handoff.mkdir()
+            raw = b"%PDF-" + b"A" * 12000
+            encoded = base64.b64encode(raw).decode("ascii")
+            self.assertGreater(len(encoded), 16000)
+            (handoff / "pdf.part001.b64").write_text(encoded, encoding="ascii")
+            artifact = {
+                "role": "pdf",
+                "output": "issue.pdf",
+                "media_type": "application/pdf",
+                "byte_size": len(raw),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "chunks": ["pdf.part001.b64"],
+            }
+            with self.assertRaisesRegex(FinalizerError, "16000"):
+                reconstruct_artifact(issue_dir, artifact)
+
+    def test_reconstruction_rejects_symlinked_chunk(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            issue_dir = root / "issue"
+            handoff = issue_dir / ".handoff"
+            handoff.mkdir(parents=True)
+            raw = b"%PDF-1.7\nsynthetic\n%%EOF"
+            external = root / "outside.b64"
+            external.write_text(base64.b64encode(raw).decode("ascii"), encoding="ascii")
+            (handoff / "pdf.part001.b64").symlink_to(external)
+            artifact = {
+                "role": "pdf",
+                "output": "issue.pdf",
+                "media_type": "application/pdf",
+                "byte_size": len(raw),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "chunks": ["pdf.part001.b64"],
+            }
+            with self.assertRaisesRegex(FinalizerError, "symlink"):
+                reconstruct_artifact(issue_dir, artifact)
+
+    def test_manifest_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            issue_dir = root / "issues/ISSUE-005-nothing-is-secondary"
+            handoff = issue_dir / ".handoff"
+            handoff.mkdir(parents=True)
+            manifest = FinalizerTests().valid_manifest()
+            outside = root / "outside-manifest.json"
+            outside.write_text(json.dumps(manifest), encoding="utf-8")
+            path = handoff / "manifest.json"
+            path.symlink_to(outside)
+            with self.assertRaisesRegex(FinalizerError, "symlink"):
+                load_and_validate_manifest(root, path, "publish/issue-005-2026-08-18")
+
+    def test_finalize_rejects_symlinked_issue_yml(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            helper = FinalizeFilesystemTests()
+            issue_dir, manifest_path, _, _ = helper.setup_repo(root)
+            issue_yml = issue_dir / "issue.yml"
+            outside = root / "outside-issue.yml"
+            outside.write_text(issue_yml.read_text(encoding="utf-8"), encoding="utf-8")
+            issue_yml.unlink()
+            issue_yml.symlink_to(outside)
+            with mock.patch("scripts.casebook_finalizer.validate_pdf", return_value=None):
+                with self.assertRaisesRegex(FinalizerError, "symlink"):
+                    finalize(root, manifest_path, "publish/issue-005-2026-08-18")
