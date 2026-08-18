@@ -134,6 +134,8 @@ The finalizer rejects the handoff before decoding if any of the following is tru
 - The target branch does not match `^publish/issue-[0-9]{3}-[0-9]{4}-[0-9]{2}-[0-9]{2}$`.
 - The branch issue number does not equal `issue_id`.
 - A chunk filename is absolute, contains `/`, contains `\\`, contains `..`, or does not match `^(pdf|preview)\.part[0-9]{3}\.b64$`.
+- A chunk file contains more than 16,000 ASCII characters.
+- The handoff directory, readiness manifest, a chunk file, or `issue.yml` is a symlink.
 - An output contains `/`, `\\`, `..`, or an unexpected extension.
 - The PDF role does not use `.pdf` and `application/pdf`.
 - The preview role does not use `.jpg` or `.jpeg` and `image/jpeg`.
@@ -144,7 +146,7 @@ The finalizer rejects the handoff before decoding if any of the following is tru
 - Chunks or outputs are duplicated.
 - Required keys are missing or unknown keys are present.
 
-Only chunk files inside the manifest's own `.handoff` directory may be read. Only the declared PDF and preview filenames inside the same issue directory may be written as reconstructed binaries.
+Only ordinary files inside the manifest's own `.handoff` directory may be read as chunks. Only the declared PDF and preview filenames inside the same issue directory may be written as reconstructed binaries.
 
 Manifest values are passed as structured arguments to Python and Git commands; they are never evaluated as shell code.
 
@@ -154,16 +156,17 @@ For each artifact, the finalizer:
 
 1. Reads chunk files in manifest order as ASCII text.
 2. Rejects characters outside the RFC 4648 base64 alphabet plus ASCII whitespace.
-3. Concatenates the chunk text.
-4. Decodes with strict base64 validation after whitespace removal.
-5. Verifies exact decoded byte count.
-6. Verifies SHA-256.
-7. Verifies file magic:
+3. Rejects any chunk containing more than 16,000 characters.
+4. Concatenates the chunk text.
+5. Decodes with strict base64 validation after whitespace removal.
+6. Verifies exact decoded byte count.
+7. Verifies SHA-256.
+8. Verifies file magic:
    - PDF begins with `%PDF-`.
    - JPEG begins with `FF D8 FF` and ends with `FF D9`.
-8. Writes to a temporary file in the issue directory.
-9. Runs validation against the temporary artifact.
-10. Atomically replaces the target output only after validation succeeds.
+9. Writes to a temporary file in the issue directory.
+10. Runs validation against the temporary artifact.
+11. Atomically replaces the target output only after validation succeeds.
 
 This permits ISSUE-005 to replace the known truncated diagnostic PDF/JPEG blobs safely. Existing valid binaries with the expected SHA-256 are accepted idempotently rather than rewritten.
 
@@ -282,6 +285,7 @@ No pull-request, issue, package, deployment, ID-token, or other write permission
 - Publication-branch content is data only; executable finalizer code always comes from `main`.
 - No shell evaluation of manifest values.
 - Manifest paths are validated before filesystem use.
+- Handoff and manifest inputs must be ordinary files/directories, not symlinks.
 - Publication branches must match the strict branch pattern.
 - `workflow_dispatch` is limited by normal GitHub repository permissions.
 - Pushes inside forks do not trigger write-capable runs in the upstream repository.
@@ -294,7 +298,7 @@ The subsystem adds focused files with separate responsibilities:
 
 - `.github/workflows/casebook-finalizer.yml` — events, permissions, separate tooling/data checkouts, runner setup, finalizer invocation, commit, and push.
 - `scripts/casebook_finalizer.py` — handoff validation, reconstruction, integrity checks, PDF mechanical validation, controlled `issue.yml` update, and cleanup.
-- `tests/test_casebook_finalizer.py` — dependency-free unit tests for schema/path validation, base64 reconstruction, hash/size checks, YAML mutation, and fail-closed behavior.
+- `tests/test_casebook_finalizer.py` — dependency-free unit tests for schema/path validation, base64 reconstruction, hash/size checks, YAML mutation, transport-boundary safety, and failure behavior.
 - `docs/casebook-finalizer.md` — operator documentation for the scheduled publisher handoff and manual ISSUE-005 rescue.
 - `skills/casebook-publisher/SKILL.md` — publisher contract updated so binary artifacts use the text handoff rather than direct GitHub binary writes.
 - `docs/validation-standard.md` — validation wording updated to recognize the finalizer boundary while preserving all existing blocking quality requirements.
@@ -335,35 +339,33 @@ Rollout sequence:
 2. Merge the finalizer infrastructure change to `main`.
 3. Run a focused scheduled task on the existing ISSUE-005 branch that recreates the already-generated local PDF/preview, performs the same local visual inspection, and writes only the base64 chunks plus `manifest.json`.
 4. Manually dispatch `Casebook Finalizer` from `main` with `target_branch=publish/issue-005-2026-08-18`.
-5. Verify reconstructed PDF and preview hashes, workflow logs, and final `issue.yml`.
-6. Remove diagnostic-only root files from the ISSUE-005 publication branch before review, including `issues/.publisher-diagnostic.md` and `issues/.scheduled-github-smoke-test.txt`. The known truncated diagnostic PDF/JPEG paths are overwritten by valid finalizer outputs.
-7. Open one supervised draft PR for ISSUE-005 through the connected GitHub app.
-8. Review ISSUE-005 manually before merging.
-9. After ISSUE-005 proves the pipeline, simplify the recurring scheduled publisher prompt so repository rules and `skills/casebook-publisher/SKILL.md` remain the canonical workflow definition.
+5. Verify reconstructed PDF and preview hashes, workflow logs, final `issue.yml`, and the draft PR.
+6. Review ISSUE-005 manually before merging, as already required.
+7. Remove diagnostic-only files from the publication branch before merge, including `.publisher-diagnostic.md`, `.scheduled-github-smoke-test.txt`, and known truncated diagnostic binary blobs when they are replaced by valid finalizer outputs.
+8. After ISSUE-005 proves the pipeline, simplify the recurring scheduled publisher prompt so repository rules and `skills/casebook-publisher/SKILL.md` remain the canonical workflow definition.
 
 ## Acceptance Criteria
 
 The subsystem is accepted when all of the following are true:
 
 1. The repository contains no new secrets or long-lived credentials.
-2. The finalizer workflow requests only `contents: write`.
-3. Executable finalizer code is loaded from `main`, not from the target publication branch.
-4. A synthetic unit test reconstructs known bytes from multiple base64 chunks and rejects one-byte corruption.
-5. Traversal attempts, unknown manifest keys, and invalid branch/issue paths are rejected.
-6. `issue.yml` is never updated to point to absent or hash-invalid binaries.
-7. The ISSUE-005 handoff reconstructs the PDF and preview to the exact locally declared SHA-256 values.
-8. ISSUE-005 passes the mechanical PDF checks in GitHub Actions.
-9. The finalizer commits valid binary files to `publish/issue-005-2026-08-18` and removes the handoff directory.
-10. A single supervised draft PR exists for ISSUE-005.
-11. No workflow opens, approves, or merges publication PRs.
-12. A failed finalizer run leaves `main` unchanged and exposes a stage-specific GitHub Actions failure log.
+2. A synthetic unit test reconstructs known bytes from multiple base64 chunks and rejects one-byte corruption.
+3. Traversal attempts, symlinked transport inputs, invalid branch/issue paths, and chunks over 16,000 characters are rejected.
+4. `issue.yml` is never updated to point to absent or hash-invalid binaries.
+5. The ISSUE-005 handoff reconstructs the PDF and preview to the exact locally declared SHA-256 values.
+6. ISSUE-005 passes the mechanical PDF checks in GitHub Actions.
+7. The finalizer commits the valid binary files to `publish/issue-005-2026-08-18`.
+8. The handoff directory is removed after success.
+9. A single supervised draft PR exists for ISSUE-005.
+10. No workflow merges ISSUE-005, ISSUE-006, or ISSUE-007 automatically.
+11. A failed finalizer run leaves `main` unchanged and exposes a useful GitHub Actions failure log.
 
 ## Future Improvements
 
-The following are intentionally deferred until transport/finalization is proven:
+These are intentionally deferred until the transport/finalization path is proven:
 
-- reproducible PDF rebuilding entirely inside GitHub Actions;
-- automatic rendered-page visual regression checks;
-- release assets or a GitHub Pages archive;
-- any auto-merge policy for post-supervision issues; and
-- broader CI for historical issue validation.
+- Reproducible PDF rebuilding entirely inside GitHub Actions.
+- Automatic rendered-page visual regression checks.
+- Release assets or GitHub Pages archive.
+- Auto-merge policy for post-supervision issues.
+- Broader repository CI for historical issue validation.
