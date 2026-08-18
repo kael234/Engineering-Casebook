@@ -6,6 +6,12 @@ on:
       - 'publish/issue-*'
     paths:
       - 'issues/**/.handoff/manifest.json'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'issues/**/.handoff/manifest.json'
   workflow_dispatch:
     inputs:
       target_branch:
@@ -18,9 +24,13 @@ permissions:
 
 jobs:
   finalize:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.head_ref, 'publish/issue-'))
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
+      TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.head_ref || github.ref_name }}
 
     steps:
       - name: Validate publication branch
