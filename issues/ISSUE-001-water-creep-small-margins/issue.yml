@@ -7,8 +7,15 @@ revision: 1
 status: published
 page_count: 3
 original_format: chat_newsletter
+legacy_backfill: true
 slots:
   - {role: deep_dive, case_id: CASE-001}
   - {role: site_problem, case_id: CASE-002}
   - {role: detail_product, case_id: CASE-003}
   - {role: engineering_win_geotechnical, case_id: CASE-004}
+pdf:
+  path: Engineering_Casebook_001_Archival_Reconstruction.pdf
+  archival_status: reconstructed_from_original_issue_content
+  reconstructed_on: 2026-08-18
+  sha256: 88c86cfaf2ff17e65f9d2794b7e2026f960a516d2ca8783355744238d21e584f
+  note: No PDF existed when ISSUE-001 was originally published; this is an explicitly labelled three-page archival reconstruction of the original cases.

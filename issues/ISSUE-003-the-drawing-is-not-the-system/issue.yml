@@ -15,6 +15,10 @@ slots:
   - {role: engineering_win_structural, case_id: CASE-012}
   - {role: archive_win, case_id: CASE-004}
 pdf:
+  path: Engineering_Casebook_003_Archival_Reconstruction.pdf
+  archival_status: reconstructed_from_accepted_original_pdf
+  reconstructed_on: 2026-08-18
+  sha256: ffa865bc72980f0974f33b92528ddede7c313247c644997dc20b1424fd9b44bd
   original_filename: Engineering_Casebook_003_Magazine_Prototype.pdf
-  archival_status: source_artifact_not_imported
-  sha256: 06057d55efa562bfe522e146a1e0e985e0ce9e886b15fff60b531144d0a21232
+  original_sha256: 06057d55efa562bfe522e146a1e0e985e0ce9e886b15fff60b531144d0a21232
+  note: The accepted original PDF remains identified by exact SHA-256. The repository copy is an explicitly labelled readable archival reconstruction because the connected GitHub file action accepts UTF-8 content rather than arbitrary local binary file input.
