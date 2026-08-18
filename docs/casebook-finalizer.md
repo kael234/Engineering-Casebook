@@ -25,7 +25,7 @@ For an issue directory such as `issues/ISSUE-005-nothing-is-secondary/`, the pub
 
 Each chunk contains standard RFC 4648 base64 ASCII and is at most 16,000 characters. Chunk order is recorded explicitly in `manifest.json`.
 
-The manifest is written **last**. Its presence is the readiness signal. A partial chunk upload without `manifest.json` is inert and does not trigger automatic finalization.
+The manifest is written **last**. Its presence is the readiness signal. A partial chunk upload without `manifest.json` is inert and must not be finalized.
 
 ## Manifest contract
 
@@ -54,24 +54,43 @@ On Ubuntu the Action installs `poppler-utils` and requires:
 
 Visual checks such as clipping, overlap, diagram legibility, hierarchy, and dead-space use remain the scheduled publisher's responsibility before the handoff is created.
 
-## Automatic future runs
+## Automatic publication flow
 
-After this infrastructure is on `main`, new `publish/issue-*` branches inherit `.github/workflows/casebook-finalizer.yml`.
+After the infrastructure is on `main`, a normal publication run is:
 
-A push that adds `issues/**/.handoff/manifest.json` starts the finalizer. The workflow checks out trusted executable tooling from `main` separately from the publication branch, which is treated as data. After validation it commits the finalized issue back to the same publication branch.
+1. The scheduled publisher creates or resumes `publish/issue-###-YYYY-MM-DD`.
+2. It writes the issue source package and all base64 chunks.
+3. It commits `.handoff/manifest.json` last.
+4. It opens or updates a **draft same-repository PR** from the publication branch to `main`.
+5. The PR `opened`, `synchronize`, or `reopened` event is the authoritative automatic wake-up path for the Casebook Finalizer when the PR diff contains `issues/**/.handoff/manifest.json`.
+6. The workflow checks out trusted executable tooling from `main` separately from the publication branch, which is treated as data.
+7. After successful validation it commits the finalized PDF/preview back to the publication branch and removes `.handoff/`.
+8. The scheduled publisher reports the direct PDF link and PR status to the task conversation only after Finalizer success.
 
-The Action does not open or merge pull requests. The scheduled publisher opens the supervised draft PR through the connected GitHub app after committing the handoff manifest. Issues 005-007 remain human-reviewed.
+The workflow also keeps the original `push` trigger as a backup for ordinary Git pushes and `workflow_dispatch` as a manual fallback. Connected GitHub-app writes have been observed not to wake the push trigger reliably, which is why the same-repository PR event is the primary path.
 
-## ISSUE-005 rescue
+The Action does not open, approve, or merge pull requests. The scheduled publisher opens the draft PR through the connected GitHub app. Issues 005–007 remain human-reviewed.
 
-ISSUE-005 predates the workflow, so it uses the manual `workflow_dispatch` path after the infrastructure is merged to `main`.
+## Security boundary for PR events
 
-1. Run a focused scheduled task that recreates the already-composed ISSUE-005 PDF and preview locally, visually inspects them, writes the base64 chunk files, and commits `manifest.json` last to `publish/issue-005-2026-08-18`.
-2. In GitHub Actions, run **Casebook Finalizer** manually from `main` with `target_branch` set to `publish/issue-005-2026-08-18`.
-3. Inspect the Action result. On success, the valid PDF/preview replace the known truncated diagnostic blobs, `issue.yml` is finalized, and `.handoff/` is removed.
-4. Open or update the supervised ISSUE-005 draft PR and review it before merge.
+The write-capable workflow uses `pull_request`, never `pull_request_target`. The finalizer job runs for PR events only when:
 
-No Issue-005 research or editorial work needs to be repeated merely to test transport.
+- the PR head repository is this same repository; and
+- the head branch starts with `publish/issue-`.
+
+Fork PRs therefore do not execute the write-capable finalizer job. Finalizer code itself always comes from trusted `main`, not from the publication branch.
+
+## Manual fallback
+
+If automatic PR-triggered finalization does not start, run **Casebook Finalizer** manually from `main` using `workflow_dispatch` with `target_branch` set to the publication branch.
+
+The manual path performs the same reconstruction, integrity verification, PDF checks, `issue.yml` finalization, handoff removal, and binary commit. It does not change the editorial content or bypass any quality gate.
+
+## Delivery back to ChatGPT
+
+The repository is the durable archive, but the user-facing delivery point is the scheduled task conversation. After successful finalization, the publisher should return a prominent clickable PDF link, the five-case summary, important toolbox additions, evidence gaps, Finalizer status, and the supervised PR link/status.
+
+For an unmerged supervised issue, use the publication-branch GitHub PDF link. After merge, prefer the corresponding `main` link.
 
 ## Failure behavior
 
