@@ -15,8 +15,6 @@ slots:
   - {role: engineering_win_structural, case_id: CASE-021}
   - {role: engineering_win_geotechnical, case_id: CASE-022}
 markdown: issue.md
-pdf: ISSUE-005-nothing-is-secondary.pdf
-preview: preview.jpg
 snapshots:
   cases: snapshots/cases.md
   sources: snapshots/sources.yml
@@ -27,4 +25,4 @@ assets:
   - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
   - assets/CASE-021-fig-01-instrumented-response.svg
   - assets/CASE-022-fig-01-mse-wall-system.svg
-note: Diagnostic Checkpoint F created and committed the PDF and preview using low-level Git blob/tree operations.
+note: Checkpoint F generated a valid local PDF and preview, but the connected low-level Git blob upload produced truncated binary blobs on the branch. The invalid diagnostic blobs are intentionally not registered as the issue PDF or preview.
