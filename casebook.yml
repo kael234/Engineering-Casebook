@@ -1,0 +1,26 @@
+schema_version: 1
+repository: kael234/Engineering-Casebook
+timezone: Indian/Mahe
+schedule: "Saturday 08:00"
+publication:
+  normal_page_count: 3
+  normal_case_count: 5
+  supervised_through_issue: 7
+  branch_prefix: publish/issue-
+  direct_main_writes: false
+ids:
+  issue: "ISSUE-{number:03d}"
+  case: "CASE-{number:03d}"
+  source: "SRC-{number:04d}"
+  product: "PROD-{number:03d}"
+  system: "SYS-{number:03d}"
+  intervention: "INT-{number:03d}"
+  failure_mode: "FM-{number:03d}"
+  notebook: "NOTE-{number:03d}"
+quality:
+  deep_dive_min_primary_sources: 1
+  min_body_pt: 8.5
+  min_secondary_pt: 8.0
+  min_source_caption_pt: 7.0
+  issue_word_target_min: 2300
+  issue_word_target_max: 2900
