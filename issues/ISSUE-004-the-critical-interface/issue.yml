@@ -1,0 +1,17 @@
+schema_version: 1
+id: ISSUE-004
+number: 4
+title: The Critical Interface
+publication_date: 2026-08-17
+revision: 1
+status: published
+page_count: 3
+original_format: magazine_v2
+slots:
+  - {role: deep_dive, case_id: CASE-013}
+  - {role: site_problem, case_id: CASE-014}
+  - {role: detail_product, case_id: CASE-015}
+  - {role: engineering_win_structural, case_id: CASE-016}
+  - {role: engineering_win_geotechnical, case_id: CASE-017}
+pdf:
+  path: Engineering_Casebook_004.pdf

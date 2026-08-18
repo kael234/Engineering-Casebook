@@ -1,0 +1,14 @@
+schema_version: 1
+id: ISSUE-001
+number: 1
+title: Water, Creep & Very Small Margins
+publication_date: 2026-08-11
+revision: 1
+status: published
+page_count: 3
+original_format: chat_newsletter
+slots:
+  - {role: deep_dive, case_id: CASE-001}
+  - {role: site_problem, case_id: CASE-002}
+  - {role: detail_product, case_id: CASE-003}
+  - {role: engineering_win_geotechnical, case_id: CASE-004}
