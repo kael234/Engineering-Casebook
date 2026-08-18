@@ -4,8 +4,9 @@ number: 5
 title: Nothing Is Secondary
 publication_date: 2026-08-18
 revision: 1
-status: published
-page_count: 3
+status: draft
+page_count: 4
+page_count_override_reason: Preserve established magazine typography, spacing and figure scale; the verified content is materially more readable as a four-page edition than when compressed into three pages.
 original_format: magazine_v3
 diagnostic: false
 slots:
@@ -25,12 +26,4 @@ assets:
   - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
   - assets/CASE-021-fig-01-instrumented-response.svg
   - assets/CASE-022-fig-01-mse-wall-system.svg
-note: Binary artifacts finalized and mechanically validated by GitHub Actions.
-pdf:
-  path: ISSUE-005-nothing-is-secondary.pdf
-  sha256: d404c47d8e9d1bbb2bef558b1d7a3344478256270f3ec6f2be28e6bd7bcbea08
-  byte_size: 63559
-preview:
-  path: preview.jpg
-  sha256: 193f513bf5c50dbd27bab3d4e3a115eac1c994d91db9b5251ffc356e873ae5cb
-  byte_size: 337913
+note: Four-page readability revision awaiting binary finalization.
