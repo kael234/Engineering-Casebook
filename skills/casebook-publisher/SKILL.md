@@ -5,11 +5,13 @@ Use this skill for every scheduled or manual Casebook publication run.
 ## 1. Read before acting
 Read `AGENTS.md`, `casebook.yml`, `docs/editorial-standard.md`, `docs/source-standard.md`, `docs/diagram-standard.md`, `docs/validation-standard.md`, `templates/magazine-style.md`, catalogs, the last three issues, and relevant toolbox records.
 
+When an original-quality `Engineering_Casebook_004.pdf` is accessible, use it as the visual-rhythm reference for apparent body size, leading, spacing, diagram scale and source treatment. Do not use a tiny archival reconstruction as the visual baseline.
+
 ## 2. Reserve publication identity
 From merged `main`, determine next issue and case IDs. If an existing open publication branch for that issue exists, resume it; never allocate duplicate IDs.
 
 ## 3. Discover
-Research roughly 10–15 real candidate cases. Reject duplicates, poorly sourced cases, speculative news-only accounts and sets with excessive disciplinary repetition.
+Research roughly 10-15 real candidate cases. Reject duplicates, poorly sourced cases, speculative news-only accounts and sets with excessive disciplinary repetition.
 
 ## 4. Select five
 Normal slots: Deep Dive; Site Problem; Detail/Product; Structural/Civil Engineering Win; Geotechnical/Site Engineering Win. At least one case should be readily transferable to ordinary building/site work.
@@ -24,12 +26,22 @@ Create new case records and reuse existing sources/toolbox entities where approp
 Default to SVG technical illustrations. Deep Dive gets at least two meaningful figures; every other case gets at least one. Validate technical geometry against sources. Store canonical case-owned figures under the case folder and copy the publication versions into the issue snapshot.
 
 ## 8. Compose issue
-Generate the three-page magazine issue using `templates/magazine-style.md`, with visible source dossiers, Engineer's Notebook material, Thread, 60-Second Takeaway and archive recall. Aim for 2300–2900 words and the typography limits in `casebook.yml`.
+Generate a three- or four-page magazine issue using `templates/magazine-style.md`, with visible source dossiers, Engineer's Notebook material, Thread, 60-Second Takeaway and archive recall.
+
+Start with three pages as the preferred compact edition, but readability and visual rhythm outrank page count. Do not force three pages by shrinking text toward minimums, tightening leading, reducing diagram scale, compressing source dossiers or removing useful whitespace. Edit repetition first. If useful verified content still needs more room, use four pages and record a specific non-empty `page_count_override_reason` in `issue.yml`.
+
+Aim for 2300-2900 words, but treat the range as guidance rather than a quota. A shorter, clearer issue is better than a dense issue padded or squeezed to satisfy a word target.
+
+For a four-page issue, keep Page 1 as the Deep Dive and Page 2 as Problems from Practice. Distribute the two Engineering Wins and the closing synthesis across Pages 3 and 4 according to complexity, keeping individual cases together where practical and avoiding a thin overflow page.
 
 For ISSUE-005 onward the source package includes its draft manifest, issue Markdown, frozen case/source snapshot material, and selected SVG assets. The final PDF and preview are registered in `issue.yml` only after the Casebook Finalizer has reconstructed and mechanically validated them.
 
 ## 9. Generate and visually validate binaries
-Generate the final PDF and practical preview locally. Execute the visual and editorial blocking checks in `docs/validation-standard.md`. Render the PDF pages to images and inspect hierarchy, clipping, source legibility, diagram legibility and dead-space usage. If a blocking pre-handoff check fails, do not create a readiness manifest.
+Generate the final PDF and practical preview locally. Execute the visual and editorial blocking checks in `docs/validation-standard.md`. Render every PDF page to images and inspect hierarchy, clipping, source legibility, diagram legibility, dead-space usage and apparent density.
+
+Before handoff, ask explicitly: would this page look materially more comfortable at the normal body/secondary/source targets in `templates/magazine-style.md` if the issue used four pages? If yes, regenerate as four pages rather than accepting a technically legal but visibly cramped three-page edition.
+
+If an original-quality Issue 004 reference is available, compare against it for apparent body size, line spacing, module separation, figure scale and closing-band readability. If a blocking pre-handoff check fails, do not create a readiness manifest.
 
 ## 10. Create the text-safe binary handoff
 Do not attempt direct GitHub writes of PDF/JPEG binary payloads.
@@ -49,7 +61,7 @@ Use the connected GitHub app for `kael234/Engineering-Casebook`. Create `publish
 
 After the complete handoff readiness manifest is committed, open or update a **draft** pull request to `main` through the connected GitHub app. Opening or synchronizing this same-repository publication PR is the authoritative wake-up event for the Casebook Finalizer. The PR is not ready to merge until the Finalizer has succeeded and committed the validated PDF/preview to the same branch.
 
-Issues 005–007 must never be auto-merged. Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
+Issues 005-007 must never be auto-merged. Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
 
 ## 12. Finalizer boundary
 The Casebook Finalizer runs from trusted `main` tooling and treats the publication branch as data. The primary automatic trigger is a same-repository `pull_request` event for a `publish/issue-*` branch whose PR contains `issues/**/.handoff/manifest.json`. A direct push trigger remains as a backup for ordinary Git pushes, and `workflow_dispatch` remains a manual fallback.

@@ -2,14 +2,14 @@
 
 A publication is blocked if any blocking check fails.
 
-## Knowledge checks — blocking
+## Knowledge checks - blocking
 - IDs are unique and sequential; published IDs are never reused.
 - Every referenced source, case or toolbox entity exists.
 - The five required issue slots are present exactly once for all new normal issues from ISSUE-005 onward.
 - Existing toolbox entities are reused instead of duplicated.
 - Published case and issue paths remain immutable.
 
-## Research checks — blocking
+## Research checks - blocking
 - Deep Dive has at least one Tier A primary source.
 - Every case has an authoritative technical source.
 - Important numerical claims trace to a cited source.
@@ -17,7 +17,7 @@ A publication is blocked if any blocking check fails.
 - Facts/findings/interpretations are distinguished where needed.
 - Evidence gaps are recorded.
 
-## Figure checks — blocking
+## Figure checks - blocking
 For ISSUE-005 onward:
 - Deep Dive has at least two meaningful SVG technical figures and every other case at least one.
 - SVG parses and has `viewBox`, title and description.
@@ -25,20 +25,23 @@ For ISSUE-005 onward:
 - Labels are readable at publication size.
 - Technical content agrees with the cited source material.
 
-## PDF checks — blocking
+## PDF checks - blocking
 For ISSUE-005 onward:
 - The scheduled publisher generates the PDF locally and visually inspects the exact binary before creating the handoff readiness manifest.
 - The Casebook Finalizer reconstructs that binary from text-safe base64 chunks and verifies the declared byte size and SHA-256 before `issue.yml` may register it.
 - The validated PDF is committed inside the issue package; `issue.yml` may never point to an absent or hash-invalid file.
-- Normally exactly 3 A4 pages; a fourth requires a recorded non-empty `page_count_override_reason`.
+- Exactly 3 or 4 A4 pages. Three pages are preferred when comfortable; four pages require a recorded non-empty `page_count_override_reason` and are preferred over visual compression.
 - Searchable text; embedded fonts; live source hyperlinks.
 - No clipping, overlap or unreadable elements.
 - Minimum body 8.5 pt, secondary 8 pt, sources/captions 7 pt.
+- Normal layout should target the larger sizes and spacing in `templates/magazine-style.md`; minimum sizes are not a pagination strategy.
 - No large unexplained dead space that indicates layout failure.
 - Figures remain legible when viewed at normal page scale.
+- Reject a three-page issue if it stays on three pages only by materially tightening body leading, source text, diagram scale, module spacing or closing-synthesis space relative to the established magazine character. Use four pages instead.
+- A four-page issue must use the extra page deliberately; reject a thin overflow page with large avoidable dead zones.
 
 ### Scheduled-publisher pre-handoff checks
-Before writing `.handoff/manifest.json`, render every PDF page to an image and inspect hierarchy, clipping, overlap, source legibility, diagram legibility, typography and dead-space usage. Record `visual_inspection.passed: true` only after those checks pass.
+Before writing `.handoff/manifest.json`, render every PDF page to an image and inspect hierarchy, clipping, overlap, source legibility, diagram legibility, typography and dead-space usage. Explicitly check whether the design is visually compressed merely to preserve three pages. Record `visual_inspection.passed: true` only after those checks pass.
 
 ### Finalizer mechanical checks
 The GitHub Action independently blocks finalization unless:
@@ -54,7 +57,7 @@ The GitHub Action independently blocks finalization unless:
 
 The mechanical checks complement rather than replace visual inspection.
 
-## Binary handoff integrity — blocking
+## Binary handoff integrity - blocking
 For ISSUE-005 onward:
 - Direct connected-GitHub binary writes are not an accepted publication path.
 - Base64 chunk files are temporary transport data under the issue's `.handoff/` directory.
@@ -69,7 +72,7 @@ ISSUE-001 through ISSUE-004 pre-date the repository publisher. Their historical 
 
 This exception is archival only. It cannot be used by ISSUE-005 or later.
 
-## Link health — warning only
+## Link health - warning only
 A transiently unavailable external URL does not invalidate otherwise verified source metadata.
 
 ## Failure behaviour
