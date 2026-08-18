@@ -58,6 +58,8 @@ The mechanical checks complement rather than replace visual inspection.
 For ISSUE-005 onward:
 - Direct connected-GitHub binary writes are not an accepted publication path.
 - Base64 chunk files are temporary transport data under the issue's `.handoff/` directory.
+- Every chunk is at most 16,000 ASCII characters.
+- Symlinked handoff directories, manifests, chunk files, or `issue.yml` inputs are rejected by the finalizer.
 - `manifest.json` is written last and is the only readiness signal.
 - A partial handoff without `manifest.json` is not a publication failure and must remain inert.
 - Handoff chunks are removed only after successful finalization.
