@@ -44,7 +44,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes poppler-utils
 
-      - name: Reconstruct chunks and write readiness manifest
+      - name: Reconstruct PDF, regenerate preview, and write manifest
         shell: bash
         run: |
           set -euo pipefail
@@ -53,6 +53,7 @@ jobs:
           import binascii
           import hashlib
           import json
+          import subprocess
           from pathlib import Path
 
           root = Path('publication')
@@ -63,41 +64,59 @@ jobs:
               raise SystemExit('handoff directory missing or unsafe')
 
           pdf_chunks = sorted(handoff.glob('pdf.part*.b64'))
-          preview_chunks = sorted(handoff.glob('preview.part*.b64'))
           expected_pdf = [handoff / f'pdf.part{i:03d}.b64' for i in range(1, 7)]
-          expected_preview = [handoff / f'preview.part{i:03d}.b64' for i in range(1, 3)]
           if pdf_chunks != expected_pdf:
               raise SystemExit(f'unexpected PDF chunk set: {[p.name for p in pdf_chunks]}')
-          if preview_chunks != expected_preview:
-              raise SystemExit(f'unexpected preview chunk set: {[p.name for p in preview_chunks]}')
 
-          def decode(role, paths):
-              parts = []
-              for path in paths:
-                  if path.is_symlink():
-                      raise SystemExit(f'{role} chunk is symlink: {path.name}')
-                  text = path.read_text(encoding='ascii')
-                  if len(text) > 16000:
-                      raise SystemExit(f'{role} chunk exceeds 16000 chars: {path.name}={len(text)}')
-                  parts.append(text)
-              compact = ''.join(parts).translate({ord(c): None for c in '\r\n\t '})
-              try:
-                  raw = base64.b64decode(compact, validate=True)
-              except (binascii.Error, ValueError) as exc:
-                  raise SystemExit(f'{role} base64 decode failed: {exc}')
-              return raw
-
-          pdf = decode('pdf', pdf_chunks)
-          preview = decode('preview', preview_chunks)
+          parts = []
+          for path in pdf_chunks:
+              if path.is_symlink():
+                  raise SystemExit(f'PDF chunk is symlink: {path.name}')
+              text = path.read_text(encoding='ascii')
+              if len(text) > 16000:
+                  raise SystemExit(f'PDF chunk exceeds 16000 chars: {path.name}={len(text)}')
+              parts.append(text)
+          compact = ''.join(parts).translate({ord(c): None for c in '\r\n\t '})
+          try:
+              pdf = base64.b64decode(compact, validate=True)
+          except (binascii.Error, ValueError) as exc:
+              raise SystemExit(f'PDF base64 decode failed: {exc}')
           if not pdf.startswith(b'%PDF-'):
               raise SystemExit('reconstructed PDF magic invalid')
-          if not preview.startswith(b'\xff\xd8\xff') or not preview.endswith(b'\xff\xd9'):
-              raise SystemExit('reconstructed JPEG magic/trailer invalid')
 
           pdf_sha = hashlib.sha256(pdf).hexdigest()
+          pdf_temp = handoff / '.reconstructed-issue005.pdf'
+          preview_prefix = handoff / '.regenerated-preview'
+          preview_temp = handoff / '.regenerated-preview.jpg'
+          pdf_temp.write_bytes(pdf)
+          try:
+              subprocess.run(
+                  ['pdftoppm', '-f', '1', '-l', '1', '-singlefile', '-jpeg', '-r', '120', str(pdf_temp), str(preview_prefix)],
+                  check=True,
+              )
+              preview = preview_temp.read_bytes()
+          finally:
+              pdf_temp.unlink(missing_ok=True)
+
+          if not preview.startswith(b'\xff\xd8\xff') or not preview.endswith(b'\xff\xd9'):
+              preview_temp.unlink(missing_ok=True)
+              raise SystemExit('regenerated JPEG magic/trailer invalid')
           preview_sha = hashlib.sha256(preview).hexdigest()
-          print(f'PDF byte_size={len(pdf)} sha256={pdf_sha}')
-          print(f'PREVIEW byte_size={len(preview)} sha256={preview_sha}')
+          preview_temp.unlink(missing_ok=True)
+
+          for old in handoff.glob('preview.part*.b64'):
+              if old.is_symlink():
+                  raise SystemExit(f'preview chunk is symlink: {old.name}')
+              old.unlink()
+          preview_encoded = base64.b64encode(preview).decode('ascii')
+          preview_chunks = []
+          for index, start in enumerate(range(0, len(preview_encoded), 16000), 1):
+              name = f'preview.part{index:03d}.b64'
+              (handoff / name).write_text(preview_encoded[start:start + 16000], encoding='ascii')
+              preview_chunks.append(name)
+
+          print(f'PDF byte_size={len(pdf)} sha256={pdf_sha} chunks={len(pdf_chunks)}')
+          print(f'PREVIEW byte_size={len(preview)} sha256={preview_sha} chunks={len(preview_chunks)}')
 
           manifest = {
               'schema_version': 1,
@@ -105,11 +124,27 @@ jobs:
               'issue_dir': issue_rel.as_posix(),
               'visual_inspection': {'passed': True, 'page_count': 3},
               'artifacts': [
-                  {'role': 'pdf', 'output': 'ISSUE-005-nothing-is-secondary.pdf', 'media_type': 'application/pdf', 'byte_size': len(pdf), 'sha256': pdf_sha, 'chunks': [p.name for p in pdf_chunks]},
-                  {'role': 'preview', 'output': 'preview.jpg', 'media_type': 'image/jpeg', 'byte_size': len(preview), 'sha256': preview_sha, 'chunks': [p.name for p in preview_chunks]},
+                  {
+                      'role': 'pdf',
+                      'output': 'ISSUE-005-nothing-is-secondary.pdf',
+                      'media_type': 'application/pdf',
+                      'byte_size': len(pdf),
+                      'sha256': pdf_sha,
+                      'chunks': [p.name for p in pdf_chunks],
+                  },
+                  {
+                      'role': 'preview',
+                      'output': 'preview.jpg',
+                      'media_type': 'image/jpeg',
+                      'byte_size': len(preview),
+                      'sha256': preview_sha,
+                      'chunks': preview_chunks,
+                  },
               ],
           }
-          (handoff / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          manifest_path = handoff / 'manifest.json'
+          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          print(f'MANIFEST {manifest_path}')
           PY
 
       - name: Run trusted Casebook Finalizer
