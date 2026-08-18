@@ -1,0 +1,20 @@
+schema_version: 1
+id: ISSUE-003
+number: 3
+title: The Drawing Is Not the System
+publication_date: 2026-08-16
+revision: 1
+status: published
+page_count: 3
+original_format: magazine_prototype
+legacy_backfill: true
+slots:
+  - {role: deep_dive, case_id: CASE-009}
+  - {role: site_problem, case_id: CASE-010}
+  - {role: detail_product, case_id: CASE-011}
+  - {role: engineering_win_structural, case_id: CASE-012}
+  - {role: archive_win, case_id: CASE-004}
+pdf:
+  original_filename: Engineering_Casebook_003_Magazine_Prototype.pdf
+  archival_status: source_artifact_not_imported
+  sha256: 06057d55efa562bfe522e146a1e0e985e0ce9e886b15fff60b531144d0a21232
