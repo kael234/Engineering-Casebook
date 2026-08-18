@@ -1,0 +1,117 @@
+name: Casebook Finalizer
+
+on:
+  push:
+    branches:
+      - 'publish/issue-*'
+    paths:
+      - 'issues/**/.handoff/manifest.json'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: Publication branch to finalize
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.ref_name }}
+
+    steps:
+      - name: Validate publication branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_BRANCH" =~ ^publish/issue-[0-9]{3}-[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "Invalid publication branch: $TARGET_BRANCH" >&2
+            exit 1
+          fi
+
+      - name: Check out trusted finalizer tooling from main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: tooling
+          persist-credentials: false
+
+      - name: Check out publication branch as data
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          path: publication
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install PDF validation tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils
+
+      - name: Locate one ready handoff
+        id: locate
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/publication"
+          mapfile -d '' manifests < <(find "$root/issues" -type f -path '*/.handoff/manifest.json' -print0)
+          if (( ${#manifests[@]} != 1 )); then
+            echo "Expected exactly one ready handoff manifest, found ${#manifests[@]}" >&2
+            exit 1
+          fi
+          manifest="${manifests[0]}"
+          issue_dir="$(dirname "$(dirname "$manifest")")"
+          issue_rel="${issue_dir#"$root/"}"
+          if [[ ! "$issue_rel" =~ ^issues/ISSUE-[0-9]{3}-[a-z0-9-]+$ ]]; then
+            echo "Invalid issue directory: $issue_rel" >&2
+            exit 1
+          fi
+          printf 'manifest=%s\n' "$manifest" >> "$GITHUB_OUTPUT"
+          printf 'issue_rel=%s\n' "$issue_rel" >> "$GITHUB_OUTPUT"
+
+      - name: Finalize and validate binary artifacts
+        id: finalizer
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(python "$GITHUB_WORKSPACE/tooling/scripts/casebook_finalizer.py" \
+            --repo-root "$GITHUB_WORKSPACE/publication" \
+            --manifest "${{ steps.locate.outputs.manifest }}" \
+            --branch "$TARGET_BRANCH")"
+          if [[ ! "$result" =~ ^ISSUE-[0-9]{3}$ ]]; then
+            echo "Unexpected finalizer result: $result" >&2
+            exit 1
+          fi
+          printf 'issue_id=%s\n' "$result" >> "$GITHUB_OUTPUT"
+
+      - name: Commit finalized issue only
+        shell: bash
+        env:
+          ISSUE_REL: ${{ steps.locate.outputs.issue_rel }}
+          ISSUE_ID: ${{ steps.finalizer.outputs.issue_id }}
+        run: |
+          set -euo pipefail
+          git -C publication config user.name "github-actions[bot]"
+          git -C publication config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publication add -- "$ISSUE_REL"
+
+          mapfile -t staged < <(git -C publication diff --cached --name-only)
+          if (( ${#staged[@]} == 0 )); then
+            echo "No finalizer changes to commit."
+            exit 0
+          fi
+          for path in "${staged[@]}"; do
+            if [[ "$path" != "$ISSUE_REL" && "$path" != "$ISSUE_REL"/* ]]; then
+              echo "Refusing to commit path outside finalized issue: $path" >&2
+              exit 1
+            fi
+          done
+
+          git -C publication commit -m "build: finalize $ISSUE_ID"
+          git -C publication push origin "HEAD:$TARGET_BRANCH"
