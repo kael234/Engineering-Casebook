@@ -6,12 +6,20 @@ on:
       - 'publish/issue-005-2026-08-18'
     paths:
       - '.github/workflows/issue005-handoff-salvage.yml'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   salvage:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'publish/issue-005-2026-08-18')
     runs-on: ubuntu-latest
     steps:
       - name: Check out publication branch as data
@@ -123,5 +131,3 @@ jobs:
           git -C publication rm -- .github/workflows/issue005-handoff-salvage.yml
           git -C publication commit -m 'build: finalize ISSUE-005'
           git -C publication push origin HEAD:publish/issue-005-2026-08-18
-
-# retrigger after creation
