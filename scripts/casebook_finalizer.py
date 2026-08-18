@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 
 MAX_ARTIFACT_BYTES = 20 * 1024 * 1024
+MAX_CHUNK_CHARS = 16000
 BRANCH_RE = re.compile(r"^publish/issue-([0-9]{3})-[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 ISSUE_ID_RE = re.compile(r"^ISSUE-([0-9]{3})$")
 ISSUE_DIR_RE = re.compile(r"^issues/ISSUE-([0-9]{3})-[a-z0-9-]+$")
@@ -104,6 +105,8 @@ def _validate_artifact(artifact: dict) -> None:
 def load_and_validate_manifest(
     repo_root: pathlib.Path, manifest_path: pathlib.Path, branch: str
 ) -> dict:
+    if manifest_path.is_symlink() or manifest_path.parent.is_symlink():
+        raise FinalizerError("handoff manifest path may not be a symlink")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
@@ -171,12 +174,20 @@ _BASE64_RE = re.compile(r"^[A-Za-z0-9+/=\r\n\t ]*$")
 def reconstruct_artifact(issue_dir: pathlib.Path, artifact: dict) -> bytes:
     handoff_dir = issue_dir / ".handoff"
     pieces: list[str] = []
+    if handoff_dir.is_symlink():
+        raise FinalizerError("handoff directory may not be a symlink")
     for chunk_name in artifact["chunks"]:
         chunk_path = handoff_dir / chunk_name
+        if chunk_path.is_symlink():
+            raise FinalizerError(f"chunk {chunk_name} may not be a symlink")
         try:
             text = chunk_path.read_text(encoding="ascii")
         except (OSError, UnicodeError) as exc:
             raise FinalizerError(f"cannot read chunk {chunk_name}: {exc}") from exc
+        if len(text) > MAX_CHUNK_CHARS:
+            raise FinalizerError(
+                f"chunk {chunk_name} exceeds the {MAX_CHUNK_CHARS}-character limit"
+            )
         if not _BASE64_RE.fullmatch(text):
             raise FinalizerError(f"chunk {chunk_name} contains non-base64 characters")
         pieces.append(text)
@@ -538,13 +549,15 @@ def _atomic_write_text(path: pathlib.Path, text: str) -> None:
 
 def finalize(repo_root: pathlib.Path, manifest_path: pathlib.Path, branch: str) -> str:
     repo_root = repo_root.resolve()
-    manifest_path = manifest_path.resolve()
+    manifest_path = manifest_path.absolute()
     if not manifest_path.exists():
         return "NOOP"
 
     manifest = load_and_validate_manifest(repo_root, manifest_path, branch)
     issue_dir = safe_issue_dir(repo_root, manifest["issue_dir"])
     issue_yml_path = issue_dir / "issue.yml"
+    if issue_yml_path.is_symlink():
+        raise FinalizerError("issue.yml may not be a symlink")
     try:
         issue_yml_text = issue_yml_path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as exc:
