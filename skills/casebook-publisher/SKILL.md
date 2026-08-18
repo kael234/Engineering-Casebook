@@ -47,14 +47,26 @@ A partial handoff without `manifest.json` is deliberately inert.
 ## 11. Publish source branch and supervised PR
 Use the connected GitHub app for `kael234/Engineering-Casebook`. Create `publish/issue-###-YYYY-MM-DD` from current `main` and commit only under the normal allowed publication paths: `cases/`, `issues/`, `library/`, and `catalog/`.
 
-After the complete handoff readiness manifest is committed, open or update a **draft** pull request to `main` through the connected GitHub app. The PR is not ready to merge until the Casebook Finalizer Action has succeeded and committed the validated PDF/preview to the same branch.
+After the complete handoff readiness manifest is committed, open or update a **draft** pull request to `main` through the connected GitHub app. Opening or synchronizing this same-repository publication PR is the authoritative wake-up event for the Casebook Finalizer. The PR is not ready to merge until the Finalizer has succeeded and committed the validated PDF/preview to the same branch.
 
 Issues 005–007 must never be auto-merged. Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
 
 ## 12. Finalizer boundary
-For future publication branches inherited from `main`, committing `.handoff/manifest.json` triggers the Casebook Finalizer automatically. The Action reconstructs the binaries, verifies exact hashes/sizes, runs mechanical PDF checks, finalizes `issue.yml`, removes `.handoff/`, and commits the valid binaries back to the publication branch.
+The Casebook Finalizer runs from trusted `main` tooling and treats the publication branch as data. The primary automatic trigger is a same-repository `pull_request` event for a `publish/issue-*` branch whose PR contains `issues/**/.handoff/manifest.json`. A direct push trigger remains as a backup for ordinary Git pushes, and `workflow_dispatch` remains a manual fallback.
 
-The scheduled publisher must not claim publication success merely because the handoff was committed. Publication is successful only after the finalizer passes and the supervised PR contains the valid PDF package.
+After opening or updating the draft PR, inspect the associated `Casebook Finalizer` workflow run. Do not claim publication success while the Finalizer is queued or running. If practical within the same publisher run, check its state again until it reaches a terminal result. If it fails, report the failing Action step and leave the PR draft. If it succeeds, verify the branch `issue.yml` now records the PDF/preview and the real files exist at the declared sizes.
 
-## 13. Report
-Return the five-case summary, new toolbox knowledge, evidence gaps, publication branch, finalizer status, and PR status. Return or link the finished PDF only after the finalizer has succeeded. If any stage fails, report the failed stage and leave `main` unchanged.
+The scheduled publisher must not claim publication success merely because the handoff or PR exists. Publication is successful only after the Finalizer passes and the supervised PR contains the valid PDF package.
+
+## 13. Report and deliver
+After Finalizer success, return the finished issue to the task conversation with:
+- a prominent direct clickable GitHub PDF link;
+- the five-case summary;
+- important new toolbox knowledge;
+- evidence gaps;
+- Finalizer status; and
+- the GitHub PR link/status.
+
+For a supervised open PR, link the PDF on the publication branch using `https://github.com/kael234/Engineering-Casebook/blob/<PUBLICATION-BRANCH>/issues/<ISSUE-DIRECTORY>/<PDF-FILENAME>`. If the issue is already merged, prefer the corresponding `main` link.
+
+If the Finalizer is still pending when the publisher run must end, report `Finalizer pending` rather than publication success and include the draft PR link. If any earlier stage fails, report the failed stage and leave `main` unchanged.
