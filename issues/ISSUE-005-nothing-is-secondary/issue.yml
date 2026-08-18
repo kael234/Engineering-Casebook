@@ -1,0 +1,28 @@
+schema_version: 1
+id: ISSUE-005
+number: 5
+title: Nothing Is Secondary
+publication_date: 2026-08-18
+revision: 1
+status: draft
+page_count: 3
+original_format: magazine_v3_diagnostic
+diagnostic: true
+slots:
+  - {role: deep_dive, case_id: CASE-018}
+  - {role: site_problem, case_id: CASE-019}
+  - {role: detail_product, case_id: CASE-020}
+  - {role: engineering_win_structural, case_id: CASE-021}
+  - {role: engineering_win_geotechnical, case_id: CASE-022}
+markdown: issue.md
+snapshots:
+  cases: snapshots/cases.md
+  sources: snapshots/sources.yml
+assets:
+  - assets/CASE-018-fig-01-lift-slab-load-path.svg
+  - assets/CASE-018-fig-02-support-loss-sequence.svg
+  - assets/CASE-019-fig-01-under-slab-uplift.svg
+  - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
+  - assets/CASE-021-fig-01-instrumented-response.svg
+  - assets/CASE-022-fig-01-mse-wall-system.svg
+note: PDF and preview fields are intentionally absent until Checkpoint F creates the files; the manifest must never point to an absent generated artifact.
