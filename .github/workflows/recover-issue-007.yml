@@ -1,0 +1,142 @@
+name: Temporary ISSUE-007 binary recovery
+
+on:
+  push:
+    branches:
+      - publish/issue-007-2026-08-19
+    paths:
+      - .github/workflows/recover-issue-007.yml
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: publish/issue-007-2026-08-19
+      ISSUE_REL: issues/ISSUE-007-give-it-a-path
+    steps:
+      - name: Check out trusted tooling from main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: tooling
+          persist-credentials: false
+
+      - name: Check out publication branch as data
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          path: publication
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install recovery validators
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils
+          python -m pip install --disable-pip-version-check --quiet pikepdf
+
+      - name: Recover the single corrupted base64 character
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE/tooling" python - <<'PY'
+          from __future__ import annotations
+          import base64
+          import hashlib
+          import io
+          import pathlib
+          import re
+          import tempfile
+          import pikepdf
+          from scripts import casebook_finalizer as finalizer
+
+          root = pathlib.Path('publication').resolve()
+          issue = root / 'issues/ISSUE-007-give-it-a-path'
+          handoff = issue / '.handoff'
+          paths = sorted(handoff.glob('pdf.part*.b64'))
+          if [p.name for p in paths] != [f'pdf.part{i:03d}.b64' for i in range(1, 8)]:
+              raise SystemExit('unexpected ISSUE-007 PDF chunk sequence')
+
+          compact = [re.sub(r'[\r\n\t ]', '', p.read_text(encoding='ascii')) for p in paths]
+          if [len(x) for x in compact] != [16000, 16000, 16000, 16000, 16000, 15373, 296]:
+              raise SystemExit(f'unexpected compact chunk lengths: {[len(x) for x in compact]}')
+          damaged = compact[5]
+          prefix = ''.join(compact[:5])
+          suffix = compact[6]
+          issue_yml_text = (issue / 'issue.yml').read_text(encoding='utf-8')
+          meta = finalizer.parse_issue_yml(issue_yml_text)
+          if meta['page_count'] != 4:
+              raise SystemExit('ISSUE-007 page_count is no longer 4')
+
+          valid: list[tuple[int, str, bytes]] = []
+          with tempfile.TemporaryDirectory() as td:
+              td_path = pathlib.Path(td)
+              candidate_path = td_path / 'candidate.pdf'
+              for index in range(len(damaged)):
+                  encoded = prefix + damaged[:index] + damaged[index + 1:] + suffix
+                  try:
+                      raw = base64.b64decode(encoded, validate=True)
+                  except Exception:
+                      continue
+                  if not raw.startswith(b'%PDF-') or b'%%EOF' not in raw[-1024:]:
+                      continue
+                  try:
+                      with pikepdf.Pdf.open(io.BytesIO(raw), attempt_recovery=False, suppress_warnings=True) as pdf:
+                          if len(pdf.pages) != 4:
+                              continue
+                          for obj in pdf.objects:
+                              if isinstance(obj, pikepdf.Stream):
+                                  obj.read_bytes()
+                  except Exception:
+                      continue
+
+                  candidate_path.write_bytes(raw)
+                  try:
+                      finalizer.validate_pdf(candidate_path, issue, issue_yml_text, 4)
+                  except Exception:
+                      continue
+                  valid.append((index, damaged[index], raw))
+                  if len(valid) > 1:
+                      break
+
+          if len(valid) != 1:
+              raise SystemExit(f'recovery is not unique; mechanically valid candidates={[(i, ch) for i, ch, _ in valid]}')
+
+          index, deleted, raw = valid[0]
+          repaired = damaged[:index] + damaged[index + 1:]
+          (handoff / 'pdf.part006.b64').write_text(repaired, encoding='ascii')
+          print(f'Recovered ISSUE-007: deleted one extra base64 character at compact chunk-6 index {index}.')
+          print(f'PDF bytes={len(raw)} sha256={hashlib.sha256(raw).hexdigest()}')
+          PY
+
+      - name: Complete trusted rescue and finalization
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(python "$GITHUB_WORKSPACE/tooling/scripts/casebook_handoff_rescue.py" \
+            --repo-root "$GITHUB_WORKSPACE/publication" \
+            --issue-dir "$ISSUE_REL" \
+            --branch "$TARGET_BRANCH")"
+          [[ "$result" == "ISSUE-007" ]] || { echo "Unexpected rescue result: $result" >&2; exit 1; }
+
+          final="$(python "$GITHUB_WORKSPACE/tooling/scripts/casebook_finalizer.py" \
+            --repo-root "$GITHUB_WORKSPACE/publication" \
+            --manifest "$GITHUB_WORKSPACE/publication/$ISSUE_REL/.handoff/manifest.json" \
+            --branch "$TARGET_BRANCH")"
+          [[ "$final" == "ISSUE-007" ]] || { echo "Unexpected finalizer result: $final" >&2; exit 1; }
+
+      - name: Commit repaired finalized issue and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C publication config user.name "github-actions[bot]"
+          git -C publication config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publication add -A -- "$ISSUE_REL"
+          git -C publication rm -- .github/workflows/recover-issue-007.yml
+          git -C publication commit -m "build: recover and finalize ISSUE-007"
+          git -C publication push origin "HEAD:$TARGET_BRANCH"
