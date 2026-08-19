@@ -26,7 +26,7 @@ assets:
   - assets/CASE-025-fig-01-ronan-sequence.svg
   - assets/CASE-026-fig-01-hsdrrs-system.svg
   - assets/CASE-027-fig-01-piled-raft-system.svg
-note: Four-page readability edition awaiting binary finalization.
+note: Four-page readability edition finalized and mechanically validated by GitHub Actions.
 pdf:
   path: ISSUE-006-capacity-is-conditional.pdf
   sha256: 721912dc37bc070e25e1521bc51b2d55bf3be4fb1f96048616a683fe5b814ebb
