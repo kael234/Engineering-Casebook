@@ -1,0 +1,76 @@
+schema_version: 1
+id: SRC-0029
+title: Investigation of the Skyline Plaza Collapse in Fairfax County, Virginia (NBS BSS 94)
+organisation: National Bureau of Standards / National Institute of Standards and Technology
+publication_date: 1977-02
+source_type: official_investigation
+authority_tier: A
+url: https://www.nist.gov/publications/investigation-skyline-plaza-collapse-fairfax-county-virginia-nbs-bss-94
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0030
+title: Report of the Independent Review Panel on Fill Slopes (GEO Report No. 86)
+organisation: Geotechnical Engineering Office / Civil Engineering and Development Department, Hong Kong
+publication_date: 1999
+source_type: government_geotechnical_review
+authority_tier: A
+url: https://www.cedd.gov.hk/eng/publications/geo/geo-reports/geo_rpt086/index.html
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0031
+title: Notes for Prime Minister Harold Wilson relating to the inquiry on the collapse of the Ronan Point tower block (AT 54/54)
+organisation: The National Archives, United Kingdom
+publication_date: 1968-10
+source_type: government_archive
+authority_tier: A
+url: https://www.nationalarchives.gov.uk/education/resources/sixties-britain/ronan-point-collapse/
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0032
+title: Best Practices for Reducing the Potential for Progressive Collapse in Buildings (NISTIR 7396)
+organisation: National Institute of Standards and Technology
+publication_date: 2007-02
+source_type: government_technical_report
+authority_tier: A
+url: https://www.nist.gov/publications/best-practices-reducing-potential-progressive-collapse-buildings
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0033
+title: FEMA Accredits Hurricane and Storm Damage Risk Reduction System (HSDRRS)
+organisation: U.S. Army Corps of Engineers / Federal Emergency Management Agency
+publication_date: 2014-02-21
+source_type: government_project_validation
+authority_tier: A
+url: https://www.mvd.usace.army.mil/Media/News-Releases/Article/473867/fema-accredits-hurricane-and-storm-damage-risk-reduction-system-hsdrrs/
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0034
+title: Foundation Design for the Burj Dubai - the World's Tallest Building
+organisation: Missouri University of Science and Technology / International Conference on Case Histories in Geotechnical Engineering
+publication_date: 2008-08
+source_type: project_technical_paper
+authority_tier: B
+url: https://scholarsmine.mst.edu/icchge/6icchge/session_01/14/
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0035
+title: Re-assessment of foundation settlements for the Burj Khalifa, Dubai
+organisation: Acta Geotechnica / Springer
+publication_date: 2013
+source_type: peer_reviewed_case_history
+authority_tier: A
+url: https://doi.org/10.1007/s11440-012-0193-4
+accessed_on: 2026-08-19
+redistribution: linked_only
