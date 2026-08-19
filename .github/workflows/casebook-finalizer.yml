@@ -85,6 +85,24 @@ jobs:
           printf 'manifest=%s\n' "$manifest" >> "$GITHUB_OUTPUT"
           printf 'issue_rel=%s\n' "$issue_rel" >> "$GITHUB_OUTPUT"
 
+      - name: Adapt direct binary handoff when present
+        shell: bash
+        env:
+          MANIFEST: ${{ steps.locate.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE/tooling" python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.casebook_blob_handoff_adapter import adapt
+
+          changed = adapt(
+              Path(os.environ['GITHUB_WORKSPACE']) / 'publication',
+              Path(os.environ['MANIFEST']),
+          )
+          print('Direct binary handoff adapted to strict v1 chunks.' if changed else 'Legacy v1 handoff; no adaptation needed.')
+          PY
+
       - name: Finalize and validate binary artifacts
         id: finalizer
         shell: bash
