@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "issue_id": "ISSUE-006",
+  "issue_dir": "issues/ISSUE-006-capacity-is-conditional",
+  "visual_inspection": {
+    "passed": true,
+    "page_count": 4
+  },
+  "artifacts": [
+    {
+      "role": "pdf",
+      "output": "ISSUE-006-capacity-is-conditional.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 52298,
+      "sha256": "721912dc37bc070e25e1521bc51b2d55bf3be4fb1f96048616a683fe5b814ebb",
+      "chunks": [
+        "pdf.part001.b64",
+        "pdf.part002.b64",
+        "pdf.part003.b64",
+        "pdf.part004.b64",
+        "pdf.part005.b64"
+      ]
+    },
+    {
+      "role": "preview",
+      "output": "preview.jpg",
+      "media_type": "image/jpeg",
+      "byte_size": 52278,
+      "sha256": "5dae5d953f2c05b91f4764e7b833431b57cffbec21511d923a93f0916dc3d434",
+      "chunks": [
+        "preview.part001.b64",
+        "preview.part002.b64",
+        "preview.part003.b64",
+        "preview.part004.b64",
+        "preview.part005.b64"
+      ]
+    }
+  ]
+}
