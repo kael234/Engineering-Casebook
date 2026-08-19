@@ -26,7 +26,7 @@ assets:
   - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
   - assets/CASE-021-fig-01-instrumented-response.svg
   - assets/CASE-022-fig-01-mse-wall-system.svg
-note: Four-page readability revision awaiting binary finalization.
+note: Four-page readability revision finalized and mechanically validated by GitHub Actions.
 pdf:
   path: ISSUE-005-nothing-is-secondary.pdf
   sha256: 0bddcdeedd9a9071ee714bd2cb7ca50a6e69718979b05b6546333380d8c02037
