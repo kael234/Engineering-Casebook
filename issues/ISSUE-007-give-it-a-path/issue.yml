@@ -6,8 +6,7 @@ publication_date: 2026-08-19
 revision: 1
 status: draft
 page_count: 4
-page_count_provisional: true
-page_count_override_reason: Provisional editorial split keeps the two Engineering Wins and closing synthesis separate; the publisher must confirm or revise page count after layout and visual validation.
+page_count_override_reason: Four pages preserve normal 9 pt-class body typography, readable source dossiers and teaching-scale figures while keeping the Penobscot Narrows and Po Shan engineering wins intact and reserving a comfortable closing synthesis band.
 original_format: magazine_v3
 diagnostic: false
 slots:
@@ -27,4 +26,4 @@ assets:
   - assets/CASE-030-fig-01-sliding-bearing-interface.svg
   - assets/CASE-031-fig-01-damper-decay-comparison.svg
   - assets/CASE-032-fig-01-groundwater-regulation-system.svg
-note: Research/editorial source package complete. Page count remains provisional pending publisher layout and visual validation.
+note: Four-page readability layout visually validated; awaiting Casebook Finalizer binary reconstruction.
