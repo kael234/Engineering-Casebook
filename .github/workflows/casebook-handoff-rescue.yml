@@ -83,6 +83,40 @@ jobs:
           printf 'noop=false\n' >> "$GITHUB_OUTPUT"
           printf 'issue_rel=%s\n' "$issue_rel" >> "$GITHUB_OUTPUT"
 
+      - name: Diagnose PDF chunk transport
+        if: steps.locate.outputs.noop == 'false'
+        shell: bash
+        env:
+          ISSUE_REL: ${{ steps.locate.outputs.issue_rel }}
+        run: |
+          set -euo pipefail
+          handoff="$GITHUB_WORKSPACE/publication/$ISSUE_REL/.handoff"
+          python - "$handoff" <<'PY'
+          import hashlib
+          import pathlib
+          import re
+          import sys
+
+          root = pathlib.Path(sys.argv[1])
+          total_raw = 0
+          total_compact = 0
+          for path in sorted(root.glob('pdf.part*.b64')):
+              text = path.read_text(encoding='ascii')
+              compact = re.sub(r'[\r\n\t ]', '', text)
+              whitespace = len(text) - len(compact)
+              total_raw += len(text)
+              total_compact += len(compact)
+              print(
+                  f'{path.name}: raw={len(text)} whitespace={whitespace} '
+                  f'compact={len(compact)} mod4={len(compact)%4} '
+                  f'sha256={hashlib.sha256(text.encode("ascii")).hexdigest()}'
+              )
+          print(
+              f'TOTAL: raw={total_raw} compact={total_compact} '
+              f'mod4={total_compact%4}'
+          )
+          PY
+
       - name: Reconstruct, validate and complete handoff
         if: steps.locate.outputs.noop == 'false'
         shell: bash
