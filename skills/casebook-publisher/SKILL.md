@@ -46,31 +46,35 @@ Before handoff, ask explicitly: would this page look materially more comfortable
 If an original-quality Issue 004 reference is available, compare against it for apparent body size, line spacing, module separation, figure scale and closing-band readability. If a blocking pre-handoff check fails, do not create a readiness manifest.
 
 ## 10. Create the text-safe binary handoff
-Do not attempt direct GitHub writes of PDF/JPEG binary payloads.
+Do not attempt direct GitHub Contents-API writes of PDF/JPEG binary payloads.
 
 For each locally validated binary:
 1. Calculate the exact byte size and SHA-256.
 2. Encode the bytes as standard RFC 4648 base64 with no compression.
-3. Split the base64 into UTF-8/ASCII chunk files containing at most 16,000 characters each.
-4. Store chunks under `issues/<ISSUE-DIRECTORY>/.handoff/` using ordered names such as `pdf.part001.b64` and `preview.part001.b64`.
-5. Commit all chunk files before the readiness manifest.
-6. Write `.handoff/manifest.json` **last**, following `docs/casebook-finalizer.md`. It must record `visual_inspection.passed: true`, the inspected page count, output names, media types, byte sizes, SHA-256 hashes and ordered chunk names.
+3. Split the base64 into UTF-8/ASCII chunk files containing at most 16,000 characters each, using ordered names such as `pdf.part001.b64` and `preview.part001.b64`.
+4. Build `.handoff/manifest.json` locally following `docs/casebook-finalizer.md`. It must record `visual_inspection.passed: true`, the inspected page count, output names, media types, byte sizes, SHA-256 hashes and ordered chunk names.
+5. **Preferred GitHub write path:** use the Git Data API rather than one Contents-API commit per chunk. Create Git blobs for every chunk and for the completed manifest without moving the branch ref. Then create one tree based on the current publication-branch tree containing the entire `.handoff/` package, create one commit whose parent is the expected branch head, and fast-forward the publication branch to that commit. The chunks and readiness manifest therefore become visible atomically.
+6. Before moving the branch ref, verify every expected blob SHA exists and that the branch head has not moved unexpectedly. If it moved, fail closed and re-read the branch rather than force-updating it.
+7. The older per-file write path is a fallback only when Git Data operations are unavailable. If used, commit all chunk files before `manifest.json`, and never repeatedly rewrite already-correct chunks merely as a verification ritual.
 
-A partial handoff without `manifest.json` is deliberately inert.
+A partial handoff without `manifest.json` is deliberately inert. An atomic Git-tree handoff is preferred because it eliminates the long series of tiny publication commits that can exhaust a scheduled task before readiness is declared.
+
+### Abandoned validated handoff recovery
+If a previous publisher run ended after writing a complete PDF chunk sequence but before creating the preview/manifest, do not blindly regenerate or rewrite the chunks. First verify that the issue metadata explicitly records that the exact layout was visually validated and that the PDF chunk sequence is complete. A focused recovery may then add `.handoff/rescue-request.json` containing exactly `{"visual_inspection_passed": true}`. The trusted `Casebook Handoff Rescue` Action reconstructs the PDF, runs the existing mechanical PDF checks, generates the page-1 preview, computes exact hashes/sizes, writes the strict readiness manifest, and removes the rescue request. If any check fails, it leaves the handoff unfinalized for diagnosis.
 
 ## 11. Publish source branch and PR
 Use the connected GitHub app for `kael234/Engineering-Casebook`. Create `publish/issue-###-YYYY-MM-DD` from current `main` and commit only under the normal allowed publication paths: `cases/`, `issues/`, `library/`, and `catalog/`.
 
 Before finalization, `issue.yml` and `catalog/issues.json` may record the issue as draft. Do not claim publication from draft metadata.
 
-After the complete handoff readiness manifest is committed, open or update a **draft** pull request to `main` through the connected GitHub app. Opening or synchronizing this same-repository publication PR is the authoritative wake-up event for the Casebook Finalizer. The PR is not ready to merge until the Finalizer has succeeded and committed the validated PDF/preview to the same branch.
+A complete handoff commit containing `.handoff/manifest.json` may wake the Casebook Finalizer through the trusted publication-branch push trigger. For a normal unstacked publication branch, also open or update a **draft** pull request to `main` through the connected GitHub app. Do not create a misleading PR to `main` when the publication branch is intentionally stacked behind an unmerged predecessor.
 
 Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
 
 ## 12. Finalizer and publication boundary
-The Casebook Finalizer runs from trusted `main` tooling and treats the publication branch as data. The primary automatic trigger is a same-repository `pull_request` event for a `publish/issue-*` branch whose PR contains `issues/**/.handoff/manifest.json`. A direct push trigger remains as a backup for ordinary Git pushes, and `workflow_dispatch` remains a manual fallback.
+The Casebook Finalizer runs from trusted `main` tooling and treats the publication branch as data. A publication-branch push that introduces `issues/**/.handoff/manifest.json` is a valid automatic wake-up path. A same-repository `pull_request` event for a `publish/issue-*` branch remains an additional wake-up path, and `workflow_dispatch` remains a manual fallback.
 
-After opening or updating the draft PR, inspect the associated `Casebook Finalizer` workflow run. Do not claim publication success while the Finalizer is queued or running. If practical within the same publisher run, check its state again until it reaches a terminal result. If it fails, report the failing Action step and leave the PR draft.
+After committing the complete handoff and opening/updating the draft PR when appropriate, inspect the associated `Casebook Finalizer` workflow run. Do not claim publication success while the Finalizer is queued or running. If practical within the same publisher run, check its state again until it reaches a terminal result. If it fails, report the failing Action step and leave the PR draft/unmerged.
 
 If the Finalizer succeeds:
 1. Verify the branch `issue.yml` records `status: published`, the correct page count, PDF/preview filenames, byte sizes and SHA-256 hashes.
@@ -78,7 +82,7 @@ If the Finalizer succeeds:
 3. Update `catalog/issues.json` so the issue is `published` rather than draft.
 4. Remove or normalize any stale pre-finalization note that now contradicts published state.
 5. Re-read `issue.yml` and `catalog/issues.json` from the branch and confirm both agree on published state.
-6. Confirm the publication PR is mergeable.
+6. Confirm the publication PR is mergeable when a PR exists.
 
 Publication is successful only after those post-finalization checks pass.
 
@@ -106,4 +110,4 @@ After Finalizer success, return the finished issue to the task conversation with
 
 For a supervised open PR, link the PDF on the publication branch using `https://github.com/kael234/Engineering-Casebook/blob/<PUBLICATION-BRANCH>/issues/<ISSUE-DIRECTORY>/<PDF-FILENAME>`. For a consumer-mode issue that has merged successfully, link the PDF from `main`.
 
-If the Finalizer is still pending when the publisher run must end, report `Finalizer pending` rather than publication success and include the draft PR link. If any earlier stage fails, report the failed stage and leave `main` unchanged.
+If the Finalizer is still pending when the publisher run must end, report `Finalizer pending` rather than publication success and include the branch/PR status. If any earlier stage fails, report the failed stage and leave `main` unchanged.
