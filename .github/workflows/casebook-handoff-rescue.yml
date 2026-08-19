@@ -6,15 +6,25 @@ on:
       - 'publish/issue-*'
     paths:
       - 'issues/**/.handoff/rescue-request.json'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'issues/**/.handoff/rescue-request.json'
 
 permissions:
   contents: write
 
 jobs:
   rescue:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.head_ref, 'publish/issue-'))
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: ${{ github.ref_name }}
+      TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
 
     steps:
       - name: Validate publication branch
