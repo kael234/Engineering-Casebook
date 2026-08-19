@@ -41,6 +41,30 @@ class RescueTests(unittest.TestCase):
             (root / "pdf.part002.b64").write_text(encoded[12:], encoding="ascii")
             self.assertEqual(decode_pdf_chunks(ordered_chunks(root, "pdf")), raw)
 
+    def test_rejects_misaligned_base64_before_decoding(self):
+        # The exact ISSUE-007 transport failure: a chunk lost characters, so the
+        # concatenated length is one more than a multiple of four.
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            raw = b"%PDF-1.7" + b"x" * 400 + b"%%EOF"
+            encoded = base64.b64encode(raw).decode("ascii")
+            (root / "pdf.part001.b64").write_text(encoded[:100], encoding="ascii")
+            (root / "pdf.part002.b64").write_text(encoded[100:-3], encoding="ascii")
+            with self.assertRaises(RescueError) as caught:
+                decode_pdf_chunks(ordered_chunks(root, "pdf"))
+            message = str(caught.exception)
+            self.assertIn("not a multiple of 4", message)
+            self.assertIn("pdf.part002.b64=", message)
+
+    def test_rejects_aligned_base64_that_is_not_a_pdf(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            encoded = base64.b64encode(b"not a pdf at all").decode("ascii")
+            (root / "pdf.part001.b64").write_text(encoded, encoding="ascii")
+            with self.assertRaises(RescueError) as caught:
+                decode_pdf_chunks(ordered_chunks(root, "pdf"))
+            self.assertIn("magic/trailer", str(caught.exception))
+
     def test_preview_chunks_round_trip(self):
         with tempfile.TemporaryDirectory() as td:
             root = pathlib.Path(td)

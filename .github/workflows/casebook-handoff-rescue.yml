@@ -12,6 +12,12 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'issues/**/.handoff/rescue-request.json'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: Publication branch to rescue
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -24,7 +30,7 @@ jobs:
        startsWith(github.head_ref, 'publish/issue-'))
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
+      TARGET_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.target_branch || github.head_ref || github.ref_name }}
 
     steps:
       - name: Validate publication branch
