@@ -2,7 +2,7 @@
 
 The Casebook Finalizer bridges one deliberately narrow gap in the publication workflow: the scheduled ChatGPT publisher can generate and inspect PDF/JPEG binaries, but its connected GitHub text write path does not reliably preserve arbitrary binary bytes.
 
-The publisher therefore transports generated binaries as base64 text. GitHub Actions reconstructs the exact bytes, verifies them, performs mechanical PDF checks, and commits only validated binary artifacts to the publication branch.
+The publisher therefore hands binaries over without relying on a text write path. The preferred transport is raw Git blobs (`manifest.json` with `schema_version: 2`); base64 chunking is the legacy path, kept for existing handoffs and recovery. GitHub Actions reconstructs the exact bytes, verifies them, performs mechanical PDF checks, and commits only validated binary artifacts to the publication branch.
 
 ## Responsibility split
 
@@ -27,6 +27,21 @@ Each chunk contains standard RFC 4648 base64 ASCII and is at most 16,000 charact
 
 The manifest is the readiness signal. A partial chunk upload without `manifest.json` is inert and must not be finalized.
 
+### Preferred transport: raw Git blobs (schema 2)
+
+Base64 chunking is legacy. It is retained only to read handoffs that already exist, and for recovery. New issues use raw binary blobs:
+
+```text
+.handoff/
+  pdf.bin
+  preview.bin
+  manifest.json      # schema_version: 2
+```
+
+The publisher writes the PDF and JPEG as Git blobs through the Git Data API — no text encoding at any point — and names them from the manifest as `input: pdf.bin` / `input: preview.bin`. `scripts/casebook_blob_handoff_adapter.py` runs first inside the Finalizer workflow, verifies exact byte size, SHA-256, PDF magic/trailer, JPEG magic/trailer, expected filenames, issue identity, declared page count and the visual-inspection declaration, then rewrites the manifest into the strict v1 contract the finalizer already enforces. A `schema_version: 1` manifest passes through untouched.
+
+Prefer this path. A base64 stream is a single long string in which one dropped character destroys everything after it, and the loss is invisible until decode time. Raw blobs are byte-exact by construction and their hash is checked before anything else runs.
+
 ### Preferred atomic Git write
 
 The connected publisher should prefer Git Data operations over one Contents-API commit per chunk. It creates all chunk blobs and the completed manifest blob without moving the branch, then creates one tree and one commit containing the entire `.handoff/` package and fast-forwards the publication branch once. The manifest and all of the bytes it names therefore become visible together.
@@ -37,11 +52,11 @@ This atomic tree commit is equivalent to "manifest last" for safety purposes and
 
 `manifest.json` records:
 
-- `schema_version: 1`;
+- `schema_version: 1` (base64 chunks) or `schema_version: 2` (raw `pdf.bin`/`preview.bin` blobs, converted to v1 by the adapter before finalization);
 - the issue ID and repository-relative issue directory;
 - `visual_inspection.passed: true` and the visually inspected page count;
 - exactly one PDF artifact and one JPEG preview artifact;
-- for each artifact: output filename, media type, exact decoded byte size, SHA-256, and ordered chunk filenames.
+- for each artifact: output filename, media type, exact decoded byte size, SHA-256, and either ordered chunk filenames (v1) or the raw `input` filename (v2).
 
 The finalizer rejects unknown fields, path traversal, symlinked handoff/manifest/chunk/`issue.yml` inputs, mismatched issue/branch IDs, invalid chunk names, chunks larger than 16,000 characters, duplicate outputs/chunks, invalid hashes, artifacts larger than 20 MiB, or a handoff that does not explicitly record successful visual inspection.
 
@@ -111,9 +126,19 @@ Fork PRs therefore do not execute the write-capable finalizer job. Finalizer cod
 
 ## Manual fallback
 
-If automatic finalization does not start, run **Casebook Finalizer** manually from `main` using `workflow_dispatch` with `target_branch` set to the publication branch.
+Committing a handoff is not the same as starting a workflow. Connected-GitHub writes have not always triggered Actions reliably, so the publisher must **verify that the expected run actually exists and succeeded** rather than assuming GitHub noticed.
+
+If no run appears, use an explicitly supported trigger:
+
+- **Casebook Finalizer** — `workflow_dispatch` from `main` with `target_branch` set to the publication branch.
+- **Casebook Handoff Rescue** — `workflow_dispatch` from `main` with `target_branch` set to the publication branch. Its push trigger only fires on changes to `.handoff/rescue-request.json`, so commits that repair chunks or binaries do not re-arm it.
+- Reopening or synchronizing the publication PR, which both workflows accept as a wake-up.
 
 The manual path performs the same reconstruction, integrity verification, PDF checks, `issue.yml` finalization, handoff removal, and binary commit. It does not change the editorial content or bypass any quality gate.
+
+### Publication success requires Finalizer success
+
+An issue is not delivered because a branch exists, a PR exists, or handoff files exist. Success requires all of: a complete handoff, a Finalizer run that passed, the final binary artifacts present in the issue directory, and finalized metadata. Anything short of that is an unfinished publication and must be reported as one.
 
 ## Delivery back to ChatGPT
 

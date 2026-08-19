@@ -54,8 +54,20 @@ def _read_chunk(path: pathlib.Path) -> str:
 
 
 def decode_pdf_chunks(paths: list[pathlib.Path]) -> bytes:
-    encoded = "".join(_read_chunk(path) for path in paths)
-    compact = re.sub(r"[\r\n\t ]", "", encoded)
+    chunks = [_read_chunk(path) for path in paths]
+    compacts = [re.sub(r"[\r\n\t ]", "", text) for text in chunks]
+    compact = "".join(compacts)
+    # Base64 must be a whole number of 4-character quanta. Verifying that up
+    # front turns a corrupt transport into an instant, diagnosable failure
+    # instead of an opaque "Incorrect padding" once the runner is already warm.
+    if len(compact) % 4:
+        sizes = ", ".join(
+            f"{path.name}={len(text)}" for path, text in zip(paths, compacts)
+        )
+        raise RescueError(
+            f"PDF base64 length {len(compact)} is not a multiple of 4 "
+            f"(remainder {len(compact) % 4}); chunk lengths: {sizes}"
+        )
     try:
         raw = base64.b64decode(compact, validate=True)
     except (binascii.Error, ValueError) as exc:

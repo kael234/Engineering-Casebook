@@ -45,19 +45,29 @@ Before handoff, ask explicitly: would this page look materially more comfortable
 
 If an original-quality Issue 004 reference is available, compare against it for apparent body size, line spacing, module separation, figure scale and closing-band readability. If a blocking pre-handoff check fails, do not create a readiness manifest.
 
-## 10. Create the text-safe binary handoff
+## 10. Create the binary handoff
 Do not attempt direct GitHub Contents-API writes of PDF/JPEG binary payloads.
 
-For each locally validated binary:
-1. Calculate the exact byte size and SHA-256.
-2. Encode the bytes as standard RFC 4648 base64 with no compression.
-3. Split the base64 into UTF-8/ASCII chunk files containing at most 16,000 characters each, using ordered names such as `pdf.part001.b64` and `preview.part001.b64`.
-4. Build `.handoff/manifest.json` locally following `docs/casebook-finalizer.md`. It must record `visual_inspection.passed: true`, the inspected page count, output names, media types, byte sizes, SHA-256 hashes and ordered chunk names.
-5. **Preferred GitHub write path:** use the Git Data API rather than one Contents-API commit per chunk. Create Git blobs for every chunk and for the completed manifest without moving the branch ref. Then create one tree based on the current publication-branch tree containing the entire `.handoff/` package, create one commit whose parent is the expected branch head, and fast-forward the publication branch to that commit. The chunks and readiness manifest therefore become visible atomically.
-6. Before moving the branch ref, verify every expected blob SHA exists and that the branch head has not moved unexpectedly. If it moved, fail closed and re-read the branch rather than force-updating it.
-7. The older per-file write path is a fallback only when Git Data operations are unavailable. If used, commit all chunk files before `manifest.json`, and never repeatedly rewrite already-correct chunks merely as a verification ritual.
+**Default path — raw Git blobs (`schema_version: 2`).** Base64 chunking is legacy; use it only to read handoffs that already exist, or for recovery of one. For each locally validated binary:
 
-A partial handoff without `manifest.json` is deliberately inert. An atomic Git-tree handoff is preferred because it eliminates the long series of tiny publication commits that can exhaust a scheduled task before readiness is declared.
+1. Calculate the exact byte size and SHA-256.
+2. Create a Git blob from the raw bytes through the Git Data API — no encoding step. Name them `pdf.bin` and `preview.bin` inside `.handoff/`.
+3. Build `.handoff/manifest.json` with `schema_version: 2`, following `docs/casebook-finalizer.md`. It must record `visual_inspection.passed: true`, the inspected page count, output names, media types, byte sizes, SHA-256 hashes, and each artifact's `input` filename.
+4. Create one tree based on the current publication-branch tree containing the entire `.handoff/` package, create one commit whose parent is the expected branch head, and fast-forward the publication branch to that commit. The binaries and readiness manifest therefore become visible atomically.
+5. Before moving the branch ref, verify every expected blob SHA exists and that the branch head has not moved unexpectedly. If it moved, fail closed and re-read the branch rather than force-updating it.
+
+The trusted adapter verifies exact byte size, SHA-256, PDF and JPEG magic/trailer, expected filenames, issue identity, declared page count and the visual-inspection declaration before the Finalizer sees anything.
+
+Prefer raw blobs because a base64 stream is a single long string in which one dropped character destroys every byte after it, and the damage is invisible until decode time. ISSUE-007 was lost exactly this way: 627 characters vanished from the middle of one chunk, taking 470 bytes of the PDF with them, and no amount of later processing could reconstruct them.
+
+**Legacy base64 path (fallback only, when Git Data blob operations are unavailable):** encode as standard RFC 4648 base64 with no compression, split into UTF-8/ASCII chunk files of at most 16,000 characters using ordered names such as `pdf.part001.b64`, write a `schema_version: 1` manifest recording ordered chunk names, and commit all chunk files before `manifest.json`. Never repeatedly rewrite already-correct chunks as a verification ritual. Before declaring readiness, check locally that the concatenated base64, stripped of whitespace, has a length divisible by four — the rescue tooling rejects anything else outright.
+
+A partial handoff without `manifest.json` is deliberately inert. An atomic handoff is preferred because it eliminates the long series of tiny publication commits that can exhaust a scheduled task before readiness is declared.
+
+### Verify the workflow actually started
+A handoff commit is not a workflow run. Connected-GitHub writes do not always trigger Actions. After committing a handoff, confirm the expected run exists and completed successfully. If none appears, use a supported trigger: `workflow_dispatch` on **Casebook Finalizer** or **Casebook Handoff Rescue** (both take a `target_branch` input), or reopen/synchronize the publication PR. Never continue on the assumption that GitHub noticed.
+
+An issue counts as published only when the handoff is complete, the Finalizer run passed, the final binaries exist in the issue directory, and the metadata is finalized. A branch, a PR, or a set of handoff files alone is an unfinished publication and must be reported as one.
 
 ### Abandoned validated handoff recovery
 If a previous publisher run ended after writing a complete PDF chunk sequence but before creating the preview/manifest, do not blindly regenerate or rewrite the chunks. First verify that the issue metadata explicitly records that the exact layout was visually validated and that the PDF chunk sequence is complete. A focused recovery may then add `.handoff/rescue-request.json` containing exactly `{"visual_inspection_passed": true}`. The trusted `Casebook Handoff Rescue` Action reconstructs the PDF, runs the existing mechanical PDF checks, generates the page-1 preview, computes exact hashes/sizes, writes the strict readiness manifest, and removes the rescue request. If any check fails, it leaves the handoff unfinalized for diagnosis.
