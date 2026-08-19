@@ -8,9 +8,22 @@ Read `AGENTS.md`, `casebook.yml`, `docs/editorial-standard.md`, `docs/source-sta
 When an original-quality `Engineering_Casebook_004.pdf` is accessible, use it as the visual-rhythm reference for apparent body size, leading, spacing, diagram scale and source treatment. Do not use a tiny archival reconstruction as the visual baseline.
 
 ## 2. Reserve publication identity
-From merged `main`, determine next issue and case IDs. If an existing open publication branch for that issue exists, resume it; never allocate duplicate IDs.
+Determine the next issue and case IDs from **integrated repository state**, not from `main` alone. Inspect merged `main`, open publication PRs, active `publish/issue-*` branches and the catalogs, and take the highest identifier seen in any of them. A supervised issue can sit finished-but-unmerged for days; allocating from `main` alone would reissue its IDs.
+
+If an open publication branch already exists for that issue, resume it rather than starting over, and never allocate duplicate IDs.
 
 Read `publication.supervised_through_issue` from `casebook.yml` and retain that threshold for the merge decision at the end of the run.
+
+### Resuming an existing publication branch
+Before any research, read the branch and classify it. The three states need different work:
+
+1. **Finished.** `issue.yml` records `status: published` with a PDF and preview present and no `.handoff/`. The issue is done. Do not touch it; move to the next identifier.
+
+2. **Binary-only resume.** The editorial package is complete — `issue.md`, `assets/`, `snapshots/`, library records and catalog entries all present — but `status: draft` and there is no PDF. **Do not re-research, re-select cases, or rewrite any editorial content.** Skip straight to generating the PDF and preview from the committed `issue.md`, assets and snapshots exactly as they stand, visually inspect the rendered pages, then hand off via raw Git blobs and finalize. Check `issue.yml`'s `note` field first — a resume of this kind normally records why the binary is missing.
+
+3. **Partial editorial work.** Continue from where the previous run stopped, reusing everything already verified and committed.
+
+Committed Markdown, figures, snapshots and source dossiers on a publication branch are the approved editorial record, not a draft to be improved. Regenerating them because the binary is missing throws away verified work and re-spends the research budget for no gain. If the layout genuinely cannot be reproduced from the committed package, stop and report that rather than quietly rewriting the issue.
 
 ## 3. Discover
 Research roughly 10-15 real candidate cases. Reject duplicates, poorly sourced cases, speculative news-only accounts and sets with excessive disciplinary repetition.
