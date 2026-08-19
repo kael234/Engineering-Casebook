@@ -10,7 +10,7 @@ When an original-quality `Engineering_Casebook_004.pdf` is accessible, use it as
 ## 2. Reserve publication identity
 Determine the next issue and case IDs from **integrated repository state**, not from `main` alone. Inspect merged `main`, open publication PRs, active `publish/issue-*` branches and the catalogs, and take the highest identifier seen in any of them. A supervised issue can sit finished-but-unmerged for days; allocating from `main` alone would reissue its IDs.
 
-If an open publication branch already exists for that issue, resume it rather than starting over, and never allocate duplicate IDs.
+Identify the highest issue number present in any of those places. If that issue is not yet finished — its publication branch is open and its `issue.yml` is not `published` — **resume that issue**; do not allocate a new number past it. Only when the highest issue is finished do you allocate the next one. Never allocate duplicate IDs.
 
 Read `publication.supervised_through_issue` from `casebook.yml` and retain that threshold for the merge decision at the end of the run.
 
