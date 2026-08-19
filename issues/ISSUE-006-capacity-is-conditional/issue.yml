@@ -1,0 +1,37 @@
+schema_version: 1
+id: ISSUE-006
+number: 6
+title: Capacity Is Conditional
+publication_date: 2026-08-19
+revision: 1
+status: published
+page_count: 4
+page_count_override_reason: Preserve established magazine typography, figure scale and source readability while giving the HSDRRS and Burj Khalifa engineering wins complete, non-cramped treatments.
+original_format: magazine_v3
+diagnostic: false
+slots:
+  - {role: deep_dive, case_id: CASE-023}
+  - {role: site_problem, case_id: CASE-024}
+  - {role: detail_product, case_id: CASE-025}
+  - {role: engineering_win_structural, case_id: CASE-026}
+  - {role: engineering_win_geotechnical, case_id: CASE-027}
+markdown: issue.md
+snapshots:
+  cases: snapshots/cases.md
+  sources: snapshots/sources.yml
+assets:
+  - assets/CASE-023-fig-01-construction-age-stack.svg
+  - assets/CASE-023-fig-02-unshored-load-path.svg
+  - assets/CASE-024-fig-01-loose-fill-wetting.svg
+  - assets/CASE-025-fig-01-ronan-sequence.svg
+  - assets/CASE-026-fig-01-hsdrrs-system.svg
+  - assets/CASE-027-fig-01-piled-raft-system.svg
+note: Four-page readability edition finalized and mechanically validated by GitHub Actions.
+pdf:
+  path: ISSUE-006-capacity-is-conditional.pdf
+  sha256: 721912dc37bc070e25e1521bc51b2d55bf3be4fb1f96048616a683fe5b814ebb
+  byte_size: 52298
+preview:
+  path: preview.jpg
+  sha256: 5dae5d953f2c05b91f4764e7b833431b57cffbec21511d923a93f0916dc3d434
+  byte_size: 52278
