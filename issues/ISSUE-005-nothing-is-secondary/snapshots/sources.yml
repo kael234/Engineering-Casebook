@@ -1,0 +1,54 @@
+schema_version: 1
+id: SRC-0024
+title: Investigation of L'Ambiance Plaza Building Collapse in Bridgeport, Connecticut (NBS IR 87-3640)
+organisation: National Bureau of Standards / National Institute of Standards and Technology
+publication_date: 1987
+source_type: official_investigation
+authority_tier: A
+url: https://www.nist.gov/publications/investigation-lambiance-plaza-building-collapse-bridgeport-connecticut-nbs-ir-87-3640
+accessed_on: 2026-08-18
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0025
+title: Oroville Dam Spillway Incident - Final Report
+organisation: Independent Forensic Team / California Department of Water Resources
+publication_date: 2018-01-05
+source_type: official_investigation
+authority_tier: A
+url: https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Oroville/Oroville-Spillways/Forensic-Team
+accessed_on: 2026-08-18
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0026
+title: Collapse of a Suspended Span of Interstate Route 95 Highway Bridge over the Mianus River
+organisation: National Transportation Safety Board
+publication_date: 1984
+source_type: official_investigation
+authority_tier: A
+url: https://www.ntsb.gov/investigations/Pages/DCA83AH003.aspx
+accessed_on: 2026-08-18
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0027
+title: Response of Olive View Hospital to Northridge and Whittier earthquakes
+organisation: U.S. Geological Survey
+publication_date: 1997
+source_type: government_technical_paper
+authority_tier: A
+url: https://www.usgs.gov/publications/response-olive-view-hospital-northridge-and-whittier-earthquakes
+accessed_on: 2026-08-18
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0028
+title: Post-Earthquake Reconnaissance Report on Transportation Infrastructure - Impact of the February 27, 2010, Offshore Maule Earthquake in Chile
+organisation: Federal Highway Administration
+publication_date: 2011-03
+source_type: government_reconnaissance_report
+authority_tier: A
+url: https://www.fhwa.dot.gov/publications/research/infrastructure/structures/11030/index.cfm
+accessed_on: 2026-08-18
+redistribution: linked_only

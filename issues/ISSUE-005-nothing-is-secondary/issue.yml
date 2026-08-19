@@ -1,0 +1,37 @@
+schema_version: 1
+id: ISSUE-005
+number: 5
+title: Nothing Is Secondary
+publication_date: 2026-08-18
+revision: 1
+status: published
+page_count: 4
+page_count_override_reason: Preserve established magazine typography, spacing and figure scale; the verified content is materially more readable as a four-page edition than when compressed into three pages.
+original_format: magazine_v3
+diagnostic: false
+slots:
+  - {role: deep_dive, case_id: CASE-018}
+  - {role: site_problem, case_id: CASE-019}
+  - {role: detail_product, case_id: CASE-020}
+  - {role: engineering_win_structural, case_id: CASE-021}
+  - {role: engineering_win_geotechnical, case_id: CASE-022}
+markdown: issue.md
+snapshots:
+  cases: snapshots/cases.md
+  sources: snapshots/sources.yml
+assets:
+  - assets/CASE-018-fig-01-lift-slab-load-path.svg
+  - assets/CASE-018-fig-02-support-loss-sequence.svg
+  - assets/CASE-019-fig-01-under-slab-uplift.svg
+  - assets/CASE-020-fig-01-pin-hanger-mechanism.svg
+  - assets/CASE-021-fig-01-instrumented-response.svg
+  - assets/CASE-022-fig-01-mse-wall-system.svg
+note: Four-page readability revision awaiting binary finalization.
+pdf:
+  path: ISSUE-005-nothing-is-secondary.pdf
+  sha256: 0bddcdeedd9a9071ee714bd2cb7ca50a6e69718979b05b6546333380d8c02037
+  byte_size: 70753
+preview:
+  path: preview.jpg
+  sha256: 1be88de2bfce66d2e85c5c6817bdd8492d8321537eb427ba0cac4a3e4fc296f5
+  byte_size: 4288
