@@ -1,0 +1,108 @@
+name: Casebook Handoff Rescue
+
+on:
+  push:
+    branches:
+      - 'publish/issue-*'
+    paths:
+      - 'issues/**/.handoff/rescue-request.json'
+
+permissions:
+  contents: write
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - name: Validate publication branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_BRANCH" =~ ^publish/issue-[0-9]{3}-[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "Invalid publication branch: $TARGET_BRANCH" >&2
+            exit 1
+          fi
+
+      - name: Check out trusted rescue tooling from main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: tooling
+          persist-credentials: false
+
+      - name: Check out publication branch as data
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          path: publication
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install PDF validation tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils
+
+      - name: Locate rescue request
+        id: locate
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE/publication"
+          mapfile -d '' requests < <(find "$root/issues" -type f -path '*/.handoff/rescue-request.json' -print0)
+          if (( ${#requests[@]} == 0 )); then
+            echo "No rescue request remains; nothing to do."
+            printf 'noop=true\n' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if (( ${#requests[@]} != 1 )); then
+            echo "Expected exactly one rescue request, found ${#requests[@]}" >&2
+            exit 1
+          fi
+          issue_dir="$(dirname "$(dirname "${requests[0]}")")"
+          issue_rel="${issue_dir#"$root/"}"
+          if [[ ! "$issue_rel" =~ ^issues/ISSUE-[0-9]{3}-[a-z0-9-]+$ ]]; then
+            echo "Invalid issue directory: $issue_rel" >&2
+            exit 1
+          fi
+          printf 'noop=false\n' >> "$GITHUB_OUTPUT"
+          printf 'issue_rel=%s\n' "$issue_rel" >> "$GITHUB_OUTPUT"
+
+      - name: Reconstruct, validate and complete handoff
+        if: steps.locate.outputs.noop == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$GITHUB_WORKSPACE/tooling/scripts/casebook_handoff_rescue.py" \
+            --repo-root "$GITHUB_WORKSPACE/publication" \
+            --issue-dir "${{ steps.locate.outputs.issue_rel }}" \
+            --branch "$TARGET_BRANCH"
+
+      - name: Commit completed handoff only
+        if: steps.locate.outputs.noop == 'false'
+        shell: bash
+        env:
+          ISSUE_REL: ${{ steps.locate.outputs.issue_rel }}
+        run: |
+          set -euo pipefail
+          git -C publication config user.name "github-actions[bot]"
+          git -C publication config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publication add -- "$ISSUE_REL"
+          mapfile -t staged < <(git -C publication diff --cached --name-only)
+          if (( ${#staged[@]} == 0 )); then
+            echo "No rescue changes to commit."
+            exit 0
+          fi
+          for path in "${staged[@]}"; do
+            if [[ "$path" != "$ISSUE_REL" && "$path" != "$ISSUE_REL"/* ]]; then
+              echo "Refusing to commit path outside rescued issue: $path" >&2
+              exit 1
+            fi
+          done
+          git -C publication commit -m "build: complete Casebook handoff"
+          git -C publication push origin "HEAD:$TARGET_BRANCH"
