@@ -57,6 +57,18 @@ The GitHub Action independently blocks finalization unless:
 
 The mechanical checks complement rather than replace visual inspection.
 
+## Post-finalization publication checks - blocking
+Before any publication PR is approved or auto-merged:
+- The associated Casebook Finalizer run completed successfully for the current publication branch state.
+- `issue.yml` records `status: published`, the final page count, PDF/preview filenames, byte sizes and SHA-256 hashes.
+- The finalized PDF and preview exist on the branch at exactly the sizes declared by `issue.yml`.
+- `catalog/issues.json` records the issue as `published`; draft catalog state may not be merged with a finalized issue.
+- Any temporary/pre-finalization note that now contradicts published state has been removed or normalized.
+- `.handoff/` no longer exists after successful finalization.
+- The pull request is mergeable.
+
+For issue numbers above `publication.supervised_through_issue`, these checks are the auto-merge gate. Any failure leaves the PR unmerged and requires an error report instead of consumer-mode publication.
+
 ## Binary handoff integrity - blocking
 For ISSUE-005 onward:
 - Direct connected-GitHub binary writes are not an accepted publication path.
