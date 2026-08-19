@@ -6,12 +6,22 @@ on:
       - publish/issue-007-2026-08-19
     paths:
       - .github/workflows/recover-issue-007.yml
+  pull_request:
+    branches:
+      - main
+    types: [reopened]
+    paths:
+      - .github/workflows/recover-issue-007.yml
 
 permissions:
   contents: write
 
 jobs:
   recover:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.head_ref == 'publish/issue-007-2026-08-19')
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: publish/issue-007-2026-08-19
