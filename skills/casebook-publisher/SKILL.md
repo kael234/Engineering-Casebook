@@ -10,6 +10,8 @@ When an original-quality `Engineering_Casebook_004.pdf` is accessible, use it as
 ## 2. Reserve publication identity
 From merged `main`, determine next issue and case IDs. If an existing open publication branch for that issue exists, resume it; never allocate duplicate IDs.
 
+Read `publication.supervised_through_issue` from `casebook.yml` and retain that threshold for the merge decision at the end of the run.
+
 ## 3. Discover
 Research roughly 10-15 real candidate cases. Reject duplicates, poorly sourced cases, speculative news-only accounts and sets with excessive disciplinary repetition.
 
@@ -56,19 +58,42 @@ For each locally validated binary:
 
 A partial handoff without `manifest.json` is deliberately inert.
 
-## 11. Publish source branch and supervised PR
+## 11. Publish source branch and PR
 Use the connected GitHub app for `kael234/Engineering-Casebook`. Create `publish/issue-###-YYYY-MM-DD` from current `main` and commit only under the normal allowed publication paths: `cases/`, `issues/`, `library/`, and `catalog/`.
+
+Before finalization, `issue.yml` and `catalog/issues.json` may record the issue as draft. Do not claim publication from draft metadata.
 
 After the complete handoff readiness manifest is committed, open or update a **draft** pull request to `main` through the connected GitHub app. Opening or synchronizing this same-repository publication PR is the authoritative wake-up event for the Casebook Finalizer. The PR is not ready to merge until the Finalizer has succeeded and committed the validated PDF/preview to the same branch.
 
-Issues 005-007 must never be auto-merged. Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
+Normal issue runs may not modify `AGENTS.md`, `casebook.yml`, `docs/`, `schemas/`, `templates/`, `skills/`, `.github/`, `scripts/`, or `tests/`.
 
-## 12. Finalizer boundary
+## 12. Finalizer and publication boundary
 The Casebook Finalizer runs from trusted `main` tooling and treats the publication branch as data. The primary automatic trigger is a same-repository `pull_request` event for a `publish/issue-*` branch whose PR contains `issues/**/.handoff/manifest.json`. A direct push trigger remains as a backup for ordinary Git pushes, and `workflow_dispatch` remains a manual fallback.
 
-After opening or updating the draft PR, inspect the associated `Casebook Finalizer` workflow run. Do not claim publication success while the Finalizer is queued or running. If practical within the same publisher run, check its state again until it reaches a terminal result. If it fails, report the failing Action step and leave the PR draft. If it succeeds, verify the branch `issue.yml` now records the PDF/preview and the real files exist at the declared sizes.
+After opening or updating the draft PR, inspect the associated `Casebook Finalizer` workflow run. Do not claim publication success while the Finalizer is queued or running. If practical within the same publisher run, check its state again until it reaches a terminal result. If it fails, report the failing Action step and leave the PR draft.
 
-The scheduled publisher must not claim publication success merely because the handoff or PR exists. Publication is successful only after the Finalizer passes and the supervised PR contains the valid PDF package.
+If the Finalizer succeeds:
+1. Verify the branch `issue.yml` records `status: published`, the correct page count, PDF/preview filenames, byte sizes and SHA-256 hashes.
+2. Verify the real PDF and preview exist at exactly the declared sizes and `.handoff/` has been removed.
+3. Update `catalog/issues.json` so the issue is `published` rather than draft.
+4. Remove or normalize any stale pre-finalization note that now contradicts published state.
+5. Re-read `issue.yml` and `catalog/issues.json` from the branch and confirm both agree on published state.
+6. Confirm the publication PR is mergeable.
+
+Publication is successful only after those post-finalization checks pass.
+
+### Supervised issues
+If the issue number is less than or equal to `publication.supervised_through_issue`, keep the PR open after successful finalization and metadata normalization. Deliver the finished PDF to the task conversation for human review. Do not merge automatically.
+
+### Consumer-mode issues
+If the issue number is greater than `publication.supervised_through_issue`, and every research, figure, PDF, Finalizer and post-finalization publication check has passed:
+1. Mark the draft PR ready for review.
+2. Re-check that the PR head has not moved unexpectedly and remains mergeable.
+3. Merge the PR to `main` through the connected GitHub app.
+4. Verify `main` contains the declared PDF and `issue.yml`/catalog published state.
+5. Deliver the finished PDF to the task conversation from `main`.
+
+Any failed check, mismatch, merge conflict, uncertain state or unexpected branch movement fails closed. Leave the PR unmerged and report the exact failed stage. Consumer mode must never trade correctness for silence.
 
 ## 13. Report and deliver
 After Finalizer success, return the finished issue to the task conversation with:
@@ -79,6 +104,6 @@ After Finalizer success, return the finished issue to the task conversation with
 - Finalizer status; and
 - the GitHub PR link/status.
 
-For a supervised open PR, link the PDF on the publication branch using `https://github.com/kael234/Engineering-Casebook/blob/<PUBLICATION-BRANCH>/issues/<ISSUE-DIRECTORY>/<PDF-FILENAME>`. If the issue is already merged, prefer the corresponding `main` link.
+For a supervised open PR, link the PDF on the publication branch using `https://github.com/kael234/Engineering-Casebook/blob/<PUBLICATION-BRANCH>/issues/<ISSUE-DIRECTORY>/<PDF-FILENAME>`. For a consumer-mode issue that has merged successfully, link the PDF from `main`.
 
 If the Finalizer is still pending when the publisher run must end, report `Finalizer pending` rather than publication success and include the draft PR link. If any earlier stage fails, report the failed stage and leave `main` unchanged.
