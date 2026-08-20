@@ -226,6 +226,101 @@ def _safe_issue_file(issue_dir: pathlib.Path, relative: str, label: str) -> path
     return candidate
 
 
+def _markdown_blocks(markdown: str) -> list[str]:
+    return [block.strip() for block in re.split(r"\n\s*\n", markdown.strip()) if block.strip()]
+
+
+def _block_word_count(blocks: list[str]) -> int:
+    return sum(len(re.findall(r"\b\w+\b", block)) for block in blocks)
+
+
+def _group_markdown_blocks(blocks: list[str]) -> list[list[str]]:
+    groups: list[list[str]] = []
+    current: list[str] = []
+    for block in blocks:
+        if block.startswith("### "):
+            if current:
+                groups.append(current)
+            current = [block]
+        else:
+            current.append(block)
+    if current:
+        groups.append(current)
+    return groups
+
+
+def build_deep_dive_layout(markdown: str, issue_dir: pathlib.Path) -> dict[str, str]:
+    blocks = _markdown_blocks(markdown)
+    case_index = next(
+        (
+            index
+            for index, block in enumerate(blocks)
+            if block.startswith("# ") and "engineering casebook" not in block.lower()
+        ),
+        -1,
+    )
+    if (
+        case_index < 0
+        or case_index + 3 > len(blocks)
+        or not blocks[case_index + 1].startswith("## ")
+    ):
+        raise RenderError("deep-dive page requires case heading, title and metadata")
+
+    header_blocks = blocks[case_index : case_index + 3]
+    body_blocks = blocks[case_index + 3 :]
+    figure_blocks = [block for block in body_blocks if block.startswith("![")]
+    text_blocks = [block for block in body_blocks if not block.startswith("![") and block != "---"]
+    groups = _group_markdown_blocks(text_blocks)
+
+    protected_index = len(groups)
+    for index, group in enumerate(groups):
+        heading = group[0].lower() if group and group[0].startswith("### ") else ""
+        if heading.startswith(
+            (
+                "### engineer's notebook",
+                "### engineers notebook",
+                "### evidence boundary",
+                "### sources for this case",
+            )
+        ):
+            protected_index = index
+            break
+
+    core_groups = groups[:protected_index]
+    protected_groups = groups[protected_index:]
+    total_words = _block_word_count([block for group in groups for block in group])
+    left_target = max(1, round(total_words * 0.66))
+    left_groups: list[list[str]] = []
+    right_groups: list[list[str]] = []
+    left_words = 0
+    for group in core_groups:
+        group_words = _block_word_count(group)
+        if left_groups and left_words + group_words > left_target:
+            right_groups.append(group)
+        else:
+            left_groups.append(group)
+            left_words += group_words
+    right_groups.extend(protected_groups)
+
+    def render_groups(items: list[list[str]]) -> str:
+        if not items:
+            return ""
+        return render_markdown_page(
+            "\n\n".join(block for group in items for block in group), issue_dir
+        )
+
+    return {
+        "header_html": render_markdown_page("\n\n".join(header_blocks), issue_dir),
+        "left_html": render_groups(left_groups),
+        "figures_html": (
+            render_markdown_page("\n\n".join(figure_blocks), issue_dir)
+            if figure_blocks
+            else ""
+        ),
+        "right_html": render_groups(right_groups),
+    }
+
+
 def build_html(
     issue_dir: pathlib.Path,
     meta: IssueMeta,
@@ -237,14 +332,26 @@ def build_html(
         raise RenderError("magazine template or stylesheet is missing")
     environment = Environment(autoescape=True, undefined=StrictUndefined)
     template = environment.from_string(template_path.read_text(encoding="utf-8"))
-    rendered_pages = [
-        {
-            "number": page.number,
-            "title": page.title,
-            "html": render_markdown_page(page.markdown, issue_dir),
-        }
-        for page in pages
-    ]
+    rendered_pages = []
+    for page in pages:
+        if page.number == 1:
+            rendered_pages.append(
+                {
+                    "number": page.number,
+                    "title": page.title,
+                    "mode": "deep_dive",
+                    **build_deep_dive_layout(page.markdown, issue_dir),
+                }
+            )
+        else:
+            rendered_pages.append(
+                {
+                    "number": page.number,
+                    "title": page.title,
+                    "mode": "columns",
+                    "html": render_markdown_page(page.markdown, issue_dir),
+                }
+            )
     return template.render(
         issue_id=meta.issue_id,
         issue_number=f"{meta.number:03d}",
