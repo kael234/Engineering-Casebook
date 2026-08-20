@@ -4,31 +4,15 @@
   <meta charset="utf-8">
   <title>{{ issue_id }} - {{ title }}</title>
   <style>{{ css }}</style>
-  <style>
-    .page-3 .page-columns > h1:first-of-type,
-    .page-3 .page-columns > h2:first-of-type,
-    .page-3 .page-columns > p:first-of-type {
-      column-span: all;
-    }
-    .page-3 .page-columns > h2:first-of-type {
-      font-size: 21pt;
-      line-height: 0.98;
-      margin-bottom: 1.8mm;
-    }
-    .page-3 .page-columns > p:first-of-type {
-      font-size: 9.4pt;
-      margin-bottom: 1.6mm;
-    }
-  </style>
 </head>
 <body>
   {% for page in pages %}
-  <section class="casebook-page page-{{ page.number }}">
+  <section class="casebook-page page-{{ page.number }} mode-{{ page.mode }}">
     <header class="page-header">
       <span class="issue-mark">ENGINEERING CASEBOOK · {{ issue_number }}</span>
       <span class="page-role">{{ page.title }}</span>
     </header>
-    {% if page.mode == 'deep_dive' %}
+    {% if page.mode == 'deep-dive' %}
     <div class="deep-dive-header">{{ page.header_html | safe }}</div>
     <div class="deep-dive-grid">
       <div class="deep-dive-column deep-dive-left">{{ page.left_html | safe }}</div>
