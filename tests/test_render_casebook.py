@@ -7,6 +7,7 @@ from pathlib import Path
 from scripts.render_casebook import (
     RenderError,
     build_deep_dive_layout,
+    is_short_feature_page,
     load_issue_meta,
     render_markdown_page,
     split_pages,
@@ -45,6 +46,34 @@ class PageParsingTests(unittest.TestCase):
                 "## PAGE 1 - A\nOne\n\n## PAGE 2 - B\nTwo",
                 3,
             )
+
+    def test_short_single_case_page_is_feature(self) -> None:
+        markdown = (
+            "# Structural Engineering Win - Example\n\n"
+            "## Measure the claimed parameter\n\n"
+            "**Location - CASE-031**\n\n"
+            + ("Measured response confirms the intervention. " * 45)
+            + "\n\n![Figure](assets/figure.svg)\n\n"
+            "### Evidence boundary\n\nSpecific system only.\n"
+        )
+        self.assertTrue(is_short_feature_page(markdown))
+
+    def test_long_single_case_page_is_not_short_feature(self) -> None:
+        markdown = (
+            "# Civil Engineering Win - Example\n\n"
+            "## The line of defence became a system\n\n"
+            "**Location - CASE-026**\n\n"
+            + ("Continuity, closure and maintenance govern performance. " * 100)
+            + "\n\n![Figure](assets/figure.svg)\n"
+        )
+        self.assertFalse(is_short_feature_page(markdown))
+
+    def test_page_with_multiple_cases_is_not_short_feature(self) -> None:
+        markdown = (
+            "# First Case\n\n## First title\n\n![One](assets/one.svg)\n\n"
+            "# Second Case\n\n## Second title\n\n![Two](assets/two.svg)\n"
+        )
+        self.assertFalse(is_short_feature_page(markdown))
 
 
 class MetadataTests(unittest.TestCase):

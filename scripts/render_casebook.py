@@ -19,6 +19,8 @@ PAGE_MARKER_RE = re.compile(r"^## PAGE ([0-9]+)\s*[-–—]\s*(.+?)\s*$", re.MUL
 CASE_HEADING_RE = re.compile(
     r"^# (?!Engineering Casebook\b).+$", re.MULTILINE | re.IGNORECASE
 )
+IMAGE_BLOCK_RE = re.compile(r"^!\[[^\]]*\]\([^)]+\)\s*$", re.MULTILINE)
+SHORT_FEATURE_MAX_WORDS = 525
 
 
 class RenderError(RuntimeError):
@@ -161,6 +163,18 @@ def split_pages(markdown: str, expected_count: int) -> list[PageSection]:
             )
         )
     return pages
+
+
+def is_short_feature_page(markdown: str) -> bool:
+    """Return true for a compact, single-case page suited to a feature layout."""
+    case_count = len(CASE_HEADING_RE.findall(markdown))
+    figure_count = len(IMAGE_BLOCK_RE.findall(markdown))
+    word_count = len(re.findall(r"\b\w+\b", markdown))
+    return (
+        case_count == 1
+        and figure_count == 1
+        and word_count <= SHORT_FEATURE_MAX_WORDS
+    )
 
 
 def resolve_asset(issue_dir: pathlib.Path, relative: str) -> pathlib.Path:
@@ -381,7 +395,7 @@ def build_html(
                 {
                     "number": page.number,
                     "title": page.title,
-                    "mode": "deep_dive",
+                    "mode": "deep-dive",
                     **build_deep_dive_layout(page.markdown, issue_dir),
                 }
             )
@@ -390,7 +404,11 @@ def build_html(
                 {
                     "number": page.number,
                     "title": page.title,
-                    "mode": "columns",
+                    "mode": (
+                        "short-feature"
+                        if is_short_feature_page(page.markdown)
+                        else "columns"
+                    ),
                     "html": render_markdown_page(page.markdown, issue_dir),
                 }
             )
