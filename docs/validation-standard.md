@@ -2,14 +2,14 @@
 
 A publication is blocked if any blocking check fails.
 
-## Knowledge checks - blocking
+## Knowledge checks — blocking
 - IDs are unique and sequential; published IDs are never reused.
 - Every referenced source, case or toolbox entity exists.
-- The five required issue slots are present exactly once for all new normal issues from ISSUE-005 onward.
+- The five required issue slots are present exactly once for all normal issues from ISSUE-005 onward.
 - Existing toolbox entities are reused instead of duplicated.
 - Published case and issue paths remain immutable.
 
-## Research checks - blocking
+## Research checks — blocking
 - Deep Dive has at least one Tier A primary source.
 - Every case has an authoritative technical source.
 - Important numerical claims trace to a cited source.
@@ -17,75 +17,77 @@ A publication is blocked if any blocking check fails.
 - Facts/findings/interpretations are distinguished where needed.
 - Evidence gaps are recorded.
 
-## Figure checks - blocking
+## Figure checks — blocking
 For ISSUE-005 onward:
 - Deep Dive has at least two meaningful SVG technical figures and every other case at least one.
 - SVG parses and has `viewBox`, title and description.
 - No unsupported dimensions or external dependencies.
 - Labels are readable at publication size.
-- Technical content agrees with the cited source material.
+- Technical content agrees with cited source material.
 
-## PDF checks - blocking
-For ISSUE-005 onward:
-- The scheduled publisher generates the PDF locally and visually inspects the exact binary before creating the handoff readiness manifest.
-- The Casebook Finalizer reconstructs that binary from text-safe base64 chunks and verifies the declared byte size and SHA-256 before `issue.yml` may register it.
-- The validated PDF is committed inside the issue package; `issue.yml` may never point to an absent or hash-invalid file.
-- Exactly 3 or 4 A4 pages. Three pages are preferred when comfortable; four pages require a recorded non-empty `page_count_override_reason` and are preferred over visual compression.
-- Searchable text; embedded fonts; live source hyperlinks.
-- No clipping, overlap or unreadable elements.
-- Minimum body 8.5 pt, secondary 8 pt, sources/captions 7 pt.
-- Normal layout should target the larger sizes and spacing in `templates/magazine-style.md`; minimum sizes are not a pagination strategy.
-- No large unexplained dead space that indicates layout failure.
-- Figures remain legible when viewed at normal page scale.
-- Reject a three-page issue if it stays on three pages only by materially tightening body leading, source text, diagram scale, module spacing or closing-synthesis space relative to the established magazine character. Use four pages instead.
-- A four-page issue must use the extra page deliberately; reject a thin overflow page with large avoidable dead zones.
+## Deterministic render checks — blocking
+The repository-owned `Casebook Deterministic Publisher` is the normal binary-generation path.
 
-### Scheduled-publisher pre-handoff checks
-Before writing `.handoff/manifest.json`, render every PDF page to an image and inspect hierarchy, clipping, overlap, source legibility, diagram legibility, typography and dead-space usage. Explicitly check whether the design is visually compressed merely to preserve three pages. Record `visual_inspection.passed: true` only after those checks pass.
-
-### Finalizer mechanical checks
-The GitHub Action independently blocks finalization unless:
-- decoded PDF/JPEG byte sizes and SHA-256 values exactly match the handoff manifest;
-- PDF/JPEG file signatures are valid;
-- PDF parser tools open the PDF;
-- page count agrees with the handoff and `issue.yml`;
-- every page is A4 within the configured tolerance;
-- searchable-text extraction exceeds the configured minimum content threshold;
+Before it records `status: rendered`, the workflow must verify:
+- `issue.yml`, issue Markdown, both snapshots and every listed SVG exist inside the issue directory;
+- committed `PAGE N` markers are unique, contiguous and equal the declared `page_count`;
+- image paths cannot escape the issue directory and resolve only to local SVG files;
+- the renderer produces exactly 3 or 4 A4 pages as declared;
+- four pages have a non-empty `page_count_override_reason`;
+- searchable-text extraction contains at least 1,800 words and 10,000 non-whitespace characters;
 - live URI annotations are at least the number of issue slots;
 - every font reported by `pdffonts` is embedded;
-- Markdown, source snapshots and listed SVG assets exist.
+- preview JPEG is valid and practically sized;
+- exact PDF/preview byte sizes and SHA-256 values are written to `issue.yml`;
+- `render.mechanical_validation` is `passed` and `render.visual_review` is `pending`;
+- `catalog/issues.json` remains draft until visual review;
+- obsolete `.handoff/` state is absent after a successful render.
 
-The mechanical checks complement rather than replace visual inspection.
+A failed render must not change the issue PDF, preview, metadata or stale recovery state. Workflow logs and uploaded page diagnostics identify the first failed gate.
 
-## Post-finalization publication checks - blocking
-Before any publication PR is approved or auto-merged:
-- The associated Casebook Finalizer run completed successfully for the current publication branch state.
-- `issue.yml` records `status: published`, the final page count, PDF/preview filenames, byte sizes and SHA-256 hashes.
-- The finalized PDF and preview exist on the branch at exactly the sizes declared by `issue.yml`.
-- `catalog/issues.json` records the issue as `published`; draft catalog state may not be merged with a finalized issue.
-- Any temporary/pre-finalization note that now contradicts published state has been removed or normalized.
-- `.handoff/` no longer exists after successful finalization.
-- The pull request is mergeable.
+## Visual publication review — blocking
+The 05:00 publisher reviews the exact branch PDF whose hash is recorded in `issue.yml`.
 
-For issue numbers above `publication.supervised_through_issue`, these checks are the auto-merge gate. Any failure leaves the PR unmerged and requires an error report instead of consumer-mode publication.
+Render every page to an image and reject:
+- clipping or overlap;
+- unreadable body, source or caption text;
+- weak hierarchy or module separation;
+- diagrams whose labels or mechanism are illegible at normal page scale;
+- a visibly compressed three-page issue that should use four pages;
+- a thin fourth-page overflow with large avoidable dead zones;
+- large unexplained dead space indicating layout failure;
+- artifact hashes/sizes that do not match `issue.yml`.
 
-## Binary handoff integrity - blocking
-For ISSUE-005 onward:
-- Direct connected-GitHub binary writes are not an accepted publication path.
-- Base64 chunk files are temporary transport data under the issue's `.handoff/` directory.
-- Every chunk is at most 16,000 ASCII characters.
-- Symlinked handoff directories, manifests, chunk files, or `issue.yml` inputs are rejected by the finalizer.
-- `manifest.json` is written last and is the only readiness signal.
-- A partial handoff without `manifest.json` is not a publication failure and must remain inert.
-- Handoff chunks are removed only after successful finalization.
+Minimum typography remains body 8.5 pt, secondary 8 pt, sources/captions 7 pt. The normal targets in `templates/magazine-style.md` are the design standard; minimums are not a pagination strategy.
+
+Only after this review passes may the publisher:
+- set `status: published`;
+- set `render.visual_review: passed`;
+- update `catalog/issues.json` to `published`;
+- normalize stale notes;
+- apply supervised or consumer-mode merge policy.
+
+## Post-publication checks — blocking
+Before a PR is approved or auto-merged:
+- the current branch PDF/preview exist at declared paths, sizes and SHA-256 hashes;
+- `issue.yml` and `catalog/issues.json` both record `published`;
+- visual review is recorded as passed;
+- `.handoff/` is absent;
+- the PR is mergeable;
+- the PR head did not move after validation.
+
+For issue numbers above `publication.supervised_through_issue`, these checks are the auto-merge gate. Any failure leaves the PR unmerged and requires an error report.
+
+## Legacy binary-handoff recovery
+The Casebook Finalizer, raw-blob adapter, base64 chunks and Handoff Rescue remain supported only for an already-existing historical handoff. They are not accepted as the normal path for a new issue.
+
+Legacy recovery remains fail-closed: exact byte size/hash, signatures, page mechanics, references, and explicit prior visual inspection are required. A partial handoff without a valid readiness manifest remains inert.
 
 ## Legacy backfill exception
-ISSUE-001 through ISSUE-004 pre-date the repository publisher. Their historical records may be less complete than the live publication contract. Any missing historical binary PDF, source snapshot or original figure asset must be declared explicitly in `issue.yml` using `legacy_backfill: true` and an archival-status field. A legacy manifest must never claim that an absent file exists.
+ISSUE-001 through ISSUE-004 pre-date the repository publisher. Missing historical binaries or source assets must be declared explicitly using `legacy_backfill: true` and archival-status metadata. This exception cannot be used by ISSUE-005 or later.
 
-This exception is archival only. It cannot be used by ISSUE-005 or later.
-
-## Link health - warning only
+## Link health — warning only
 A transiently unavailable external URL does not invalidate otherwise verified source metadata.
 
 ## Failure behaviour
-Do not register a partial package as published and never merge it to `main`. A source package or diagnostic handoff may remain on its publication branch for repair, but `issue.yml` must not claim absent/invalid generated artifacts. Report the failed stage and preserve `main` unchanged.
+Never register a partial package as published and never merge it to `main`. Preserve durable source or `rendered` state, report the first failed stage, and leave canonical `main` unchanged.

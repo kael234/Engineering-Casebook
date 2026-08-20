@@ -1,13 +1,18 @@
 schema_version: 1
 repository: kael234/Engineering-Casebook
 timezone: Indian/Mahe
-schedule: "Saturday 08:00"
+schedule:
+  research: "Thursday 00:15"
+  render: "Thursday 04:00"
+  review: "Thursday 05:00"
 publication:
   normal_page_count: 3
   normal_case_count: 5
   supervised_through_issue: 7
   branch_prefix: publish/issue-
   direct_main_writes: false
+  renderer_workflow: casebook-publisher.yml
+  renderer_version: casebook-renderer/1
 ids:
   issue: "ISSUE-{number:03d}"
   case: "CASE-{number:03d}"

@@ -3,6 +3,7 @@ import json
 import pathlib
 import tempfile
 import unittest
+from unittest import mock
 
 from scripts.casebook_handoff_rescue import (
     RescueError,
@@ -117,27 +118,38 @@ class RescueIntegrationTests(unittest.TestCase):
                 "  sources: snapshots/sources.yml\nassets:\n  - assets/a.svg\n",
                 encoding="utf-8",
             )
-            raw = base64.b64decode(
-                "JVBERi0xLjMKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSCj4+CmVuZG9iagoyIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMSAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL0NvbnRlbnRzIDcgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUuMjggODQxLjg5IF0gL1BhcmVudCA2IDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago0IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgNiAwIFIgL1R5cGUgL0NhdGFsb2cKPj4KZW5kb2JqCjUgMCBvYmoKPDwKL0F1dGhvciAoYW5vbnltb3VzKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwODE5MTE1ODQ2KzAwJzAwJykgL0NyZWF0b3IgKGFub255bW91cykgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwODE5MTE1ODQ2KzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKHVuc3BlY2lmaWVkKSAvVGl0bGUgKHVudGl0bGVkKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL0NvdW50IDEgL0tpZHMgWyAzIDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKNyAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAxMTIKPj4Kc3RyZWFtCkdhcFFoMEU9RiwwVVxIM1RccE5ZVF5RS2s/dGM+SVAsO1cjVTFeMjNpaFBFTV8/Q1c0S0lTaTwhWzdgI09CX3F1a0paQjBWIzouLEtxZClWak8uIl1QMThKKDluZVpbS2IsaHQtM1oiJWhtWEFofj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA4CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMDkyIDAwMDAwIG4gCjAwMDAwMDAxOTkgMDAwMDAgbiAKMDAwMDAwMDM5OCAwMDAwMCBuIAowMDAwMDAwNDY2IDAwMDAwIG4gCjAwMDAwMDA3MjcgMDAwMDAgbiAKMDAwMDAwMDc4NiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9JRCAKWzxjNDY2ZjE0ZDU1MmRlYmYyYWU5NDk4ODI2OTMxOWM1Mz48YzQ2NmYxNGQ1NTJkZWJmMmFlOTQ5ODgyNjkzMTljNTM+XQolIFJlcG9ydExhYiBnZW5lcmF0ZWQgUERGIGRvY3VtZW50IC0tIGRpZ2VzdCAob3BlbnNvdXJjZSkKCi9JbmZvIDUgMCBSCi9Sb290IDQgMCBSCi9TaXplIDgKPj4Kc3RhcnR4cmVmCjk4OAolJUVPRgo="
-            )
+            raw = b"%PDF-1.7\nsynthetic rescue fixture\n%%EOF\n"
             encoded = base64.b64encode(raw).decode("ascii")
             for index, start in enumerate(range(0, len(encoded), 16000), 1):
                 (handoff / f"pdf.part{index:03d}.b64").write_text(
-                    encoded[start:start + 16000], encoding="ascii"
+                    encoded[start : start + 16000], encoding="ascii"
                 )
             (handoff / "rescue-request.json").write_text(
                 json.dumps({"visual_inspection_passed": True}), encoding="utf-8"
             )
+            preview = b"\xff\xd8\xffsynthetic-preview\xff\xd9"
 
-            self.assertEqual(
-                rescue(root, issue_dir, "publish/issue-007-2026-08-19"),
-                "ISSUE-007",
-            )
+            # This test covers rescue orchestration, preview chunking and manifest
+            # creation. Real PDF mechanics are already covered by Finalizer tests;
+            # keeping them mocked here makes the test independent of host tools.
+            with mock.patch(
+                "scripts.casebook_finalizer.validate_pdf"
+            ) as validate_pdf, mock.patch(
+                "scripts.casebook_handoff_rescue._generate_preview",
+                return_value=preview,
+            ):
+                self.assertEqual(
+                    rescue(root, issue_dir, "publish/issue-007-2026-08-19"),
+                    "ISSUE-007",
+                )
+
+            validate_pdf.assert_called_once()
             self.assertFalse((handoff / "rescue-request.json").exists())
             self.assertTrue((handoff / "manifest.json").is_file())
             manifest = json.loads((handoff / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["issue_id"], "ISSUE-007")
             self.assertTrue(manifest["artifacts"][1]["chunks"])
+            self.assertEqual(manifest["artifacts"][1]["byte_size"], len(preview))
 
 
 if __name__ == "__main__":

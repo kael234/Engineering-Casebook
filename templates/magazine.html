@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ issue_id }} - {{ title }}</title>
+  <style>{{ css }}</style>
+</head>
+<body>
+  {% for page in pages %}
+  <section class="casebook-page page-{{ page.number }}">
+    <header class="page-header">
+      <span class="issue-mark">ENGINEERING CASEBOOK · {{ issue_number }}</span>
+      <span class="page-role">{{ page.title }}</span>
+    </header>
+    {% if page.mode == 'deep_dive' %}
+    <div class="deep-dive-header">{{ page.header_html | safe }}</div>
+    <div class="deep-dive-grid">
+      <div class="deep-dive-column deep-dive-left">{{ page.left_html | safe }}</div>
+      <div class="deep-dive-column deep-dive-right">
+        <div class="deep-dive-figures">{{ page.figures_html | safe }}</div>
+        {{ page.right_html | safe }}
+      </div>
+    </div>
+    {% else %}
+    <div class="page-columns">{{ page.html | safe }}</div>
+    {% endif %}
+  </section>
+  {% endfor %}
+</body>
+</html>
