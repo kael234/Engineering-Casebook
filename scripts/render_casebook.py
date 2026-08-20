@@ -16,6 +16,9 @@ from weasyprint import HTML
 
 ISSUE_ID_RE = re.compile(r"^ISSUE-([0-9]{3})$")
 PAGE_MARKER_RE = re.compile(r"^## PAGE ([0-9]+)\s*[-–—]\s*(.+?)\s*$", re.MULTILINE)
+CASE_HEADING_RE = re.compile(
+    r"^# (?!Engineering Casebook\b).+$", re.MULTILINE | re.IGNORECASE
+)
 
 
 class RenderError(RuntimeError):
@@ -78,16 +81,22 @@ def load_issue_meta(path: pathlib.Path) -> IssueMeta:
     if not match:
         raise RenderError("issue.yml has invalid id")
     number = data.get("number")
-    if isinstance(number, bool) or not isinstance(number, int) or number != int(match.group(1)):
+    if isinstance(number, bool) or not isinstance(number, int):
+        raise RenderError("issue.yml number must be an integer")
+    if number != int(match.group(1)):
         raise RenderError("issue.yml number does not match id")
+
     title = data.get("title")
     if not isinstance(title, str) or not title.strip():
         raise RenderError("issue.yml requires a title")
     status = data.get("status")
     if status not in {"draft", "rendered", "published", "corrected"}:
         raise RenderError("issue.yml has unsupported status")
+
     page_count = data.get("page_count")
-    if isinstance(page_count, bool) or not isinstance(page_count, int) or page_count not in {3, 4}:
+    if isinstance(page_count, bool) or not isinstance(page_count, int):
+        raise RenderError("issue.yml page_count must be an integer")
+    if page_count not in {3, 4}:
         raise RenderError("issue.yml page_count must be 3 or 4")
     reason = data.get("page_count_override_reason")
     if reason is not None and (not isinstance(reason, str) or not reason.strip()):
@@ -96,12 +105,12 @@ def load_issue_meta(path: pathlib.Path) -> IssueMeta:
         raise RenderError("four-page issue requires non-empty page_count_override_reason")
 
     markdown = _safe_rel_path(data.get("markdown"), label="markdown")
-    snapshots_obj = data.get("snapshots", {})
-    if snapshots_obj is None:
-        snapshots_obj = {}
+    snapshots_obj = data.get("snapshots", {}) or {}
     if not isinstance(snapshots_obj, dict):
         raise RenderError("issue.yml snapshots must be an object")
-    snapshots = tuple(_safe_rel_path(value, label="snapshot") for value in snapshots_obj.values())
+    snapshots = tuple(
+        _safe_rel_path(value, label="snapshot") for value in snapshots_obj.values()
+    )
     assets_obj = data.get("assets", [])
     if not isinstance(assets_obj, list):
         raise RenderError("issue.yml assets must be a list")
@@ -144,14 +153,19 @@ def split_pages(markdown: str, expected_count: int) -> list[PageSection]:
         body = markdown[start:end].strip()
         if index == 0 and preamble:
             body = f"{preamble}\n\n{body}" if body else preamble
-        pages.append(PageSection(numbers[index], marker.group(2).strip(), body))
+        pages.append(
+            PageSection(
+                number=numbers[index],
+                title=marker.group(2).strip(),
+                markdown=body,
+            )
+        )
     return pages
 
 
 def resolve_asset(issue_dir: pathlib.Path, relative: str) -> pathlib.Path:
     relative = _safe_rel_path(relative, label="image asset")
-    pure = pathlib.PurePosixPath(relative)
-    if pure.suffix.lower() != ".svg":
+    if pathlib.PurePosixPath(relative).suffix.lower() != ".svg":
         raise RenderError(f"publication image must be SVG: {relative}")
     root = issue_dir.resolve()
     candidate = (root / relative).resolve()
@@ -227,7 +241,11 @@ def _safe_issue_file(issue_dir: pathlib.Path, relative: str, label: str) -> path
 
 
 def _markdown_blocks(markdown: str) -> list[str]:
-    return [block.strip() for block in re.split(r"\n\s*\n", markdown.strip()) if block.strip()]
+    return [
+        block.strip()
+        for block in re.split(r"\n\s*\n", markdown.strip())
+        if block.strip()
+    ]
 
 
 def _block_word_count(blocks: list[str]) -> int:
@@ -250,26 +268,27 @@ def _group_markdown_blocks(blocks: list[str]) -> list[list[str]]:
 
 
 def build_deep_dive_layout(markdown: str, issue_dir: pathlib.Path) -> dict[str, str]:
-    blocks = _markdown_blocks(markdown)
-    case_index = next(
-        (
-            index
-            for index, block in enumerate(blocks)
-            if block.startswith("# ") and "engineering casebook" not in block.lower()
-        ),
-        -1,
-    )
-    if (
-        case_index < 0
-        or case_index + 3 > len(blocks)
-        or not blocks[case_index + 1].startswith("## ")
-    ):
-        raise RenderError("deep-dive page requires case heading, title and metadata")
+    case_match = CASE_HEADING_RE.search(markdown)
+    if case_match is None:
+        raise RenderError("deep-dive page requires a case heading")
 
-    header_blocks = blocks[case_index : case_index + 3]
-    body_blocks = blocks[case_index + 3 :]
+    # Ignore the issue-level preamble completely. It is already represented by
+    # the running header and was the source of ambiguous block grouping in the
+    # first renderer attempt.
+    blocks = _markdown_blocks(markdown[case_match.start() :])
+    if len(blocks) < 3:
+        raise RenderError("deep-dive page requires case heading, title and metadata")
+    if not blocks[0].startswith("# ") or not blocks[1].startswith("## "):
+        raise RenderError("deep-dive page requires case heading followed by title")
+
+    header_blocks = blocks[:3]
+    body_blocks = blocks[3:]
     figure_blocks = [block for block in body_blocks if block.startswith("![")]
-    text_blocks = [block for block in body_blocks if not block.startswith("![") and block != "---"]
+    text_blocks = [
+        block
+        for block in body_blocks
+        if not block.startswith("![") and block != "---"
+    ]
     groups = _group_markdown_blocks(text_blocks)
 
     protected_index = len(groups)
@@ -305,9 +324,10 @@ def build_deep_dive_layout(markdown: str, issue_dir: pathlib.Path) -> dict[str, 
     def render_groups(items: list[list[str]]) -> str:
         if not items:
             return ""
-        return render_markdown_page(
-            "\n\n".join(block for group in items for block in group), issue_dir
+        markdown_text = "\n\n".join(
+            block for group in items for block in group
         )
+        return render_markdown_page(markdown_text, issue_dir)
 
     return {
         "header_html": render_markdown_page("\n\n".join(header_blocks), issue_dir),
@@ -332,7 +352,7 @@ def build_html(
         raise RenderError("magazine template or stylesheet is missing")
     environment = Environment(autoescape=True, undefined=StrictUndefined)
     template = environment.from_string(template_path.read_text(encoding="utf-8"))
-    rendered_pages = []
+    rendered_pages: list[dict[str, object]] = []
     for page in pages:
         if page.number == 1:
             rendered_pages.append(
@@ -359,31 +379,6 @@ def build_html(
         pages=rendered_pages,
         css=css_path.read_text(encoding="utf-8"),
     )
-
-
-def diagnose_declared_page_counts(
-    issue_dir: pathlib.Path,
-    meta: IssueMeta,
-    pages: list[PageSection],
-    template_root: pathlib.Path,
-    output_dir: pathlib.Path,
-) -> dict[int, int]:
-    counts: dict[int, int] = {}
-    for page in pages:
-        document = build_html(
-            issue_dir,
-            meta,
-            [page],
-            template_root / "magazine.html",
-            template_root / "magazine.css",
-        )
-        diagnostic = output_dir / f".casebook-page-{page.number}.pdf"
-        HTML(string=document, base_url=str(issue_dir)).write_pdf(str(diagnostic))
-        try:
-            counts[page.number] = len(inspect_pdf_pages(diagnostic))
-        finally:
-            diagnostic.unlink(missing_ok=True)
-    return counts
 
 
 def inspect_pdf_pages(pdf_path: pathlib.Path) -> tuple[tuple[float, float], ...]:
@@ -430,6 +425,31 @@ def inspect_pdf_pages(pdf_path: pathlib.Path) -> tuple[tuple[float, float], ...]
     return tuple(sizes)
 
 
+def _diagnose_declared_page_counts(
+    issue_dir: pathlib.Path,
+    meta: IssueMeta,
+    pages: list[PageSection],
+    template_root: pathlib.Path,
+    output_dir: pathlib.Path,
+) -> dict[int, int]:
+    counts: dict[int, int] = {}
+    for page in pages:
+        document = build_html(
+            issue_dir,
+            meta,
+            [page],
+            template_root / "magazine.html",
+            template_root / "magazine.css",
+        )
+        diagnostic = output_dir / f".casebook-page-{page.number}.pdf"
+        HTML(string=document, base_url=str(issue_dir)).write_pdf(str(diagnostic))
+        try:
+            counts[page.number] = len(inspect_pdf_pages(diagnostic))
+        finally:
+            diagnostic.unlink(missing_ok=True)
+    return counts
+
+
 def render_issue(
     issue_dir: pathlib.Path,
     output_pdf: pathlib.Path,
@@ -442,6 +462,7 @@ def render_issue(
         _safe_issue_file(issue_dir, snapshot, "snapshot")
     for asset in meta.assets:
         resolve_asset(issue_dir, asset)
+
     markdown = markdown_path.read_text(encoding="utf-8")
     pages = split_pages(markdown, meta.page_count)
     document = build_html(
@@ -454,18 +475,21 @@ def render_issue(
 
     output_pdf = output_pdf.resolve()
     output_pdf.parent.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=".casebook-render-", suffix=".pdf", dir=output_pdf.parent)
+    fd, name = tempfile.mkstemp(
+        prefix=".casebook-render-", suffix=".pdf", dir=output_pdf.parent
+    )
     os.close(fd)
     temporary = pathlib.Path(name)
     try:
         HTML(string=document, base_url=str(issue_dir)).write_pdf(str(temporary))
         sizes = inspect_pdf_pages(temporary)
         if len(sizes) != meta.page_count:
-            section_counts = diagnose_declared_page_counts(
+            section_counts = _diagnose_declared_page_counts(
                 issue_dir, meta, pages, template_root, output_pdf.parent
             )
             detail = ", ".join(
-                f"PAGE {number}={count}" for number, count in sorted(section_counts.items())
+                f"PAGE {number}={count}"
+                for number, count in sorted(section_counts.items())
             )
             raise RenderError(
                 f"rendered page count {len(sizes)} does not match declared "
