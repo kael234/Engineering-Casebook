@@ -175,11 +175,17 @@ blockquote {
   column-span: all;
 }
 
+/* Markdown source dossiers already name each source. Preserve the live URI
+   annotation without wasting several lines printing the full raw URL. */
 a {
   color: #285a6a;
   text-decoration: underline;
-  overflow-wrap: anywhere;
+  font-size: 0;
+}
+a::after {
+  content: "Open source";
   font-size: 7.2pt;
+  letter-spacing: 0.01em;
 }
 table {
   width: 100%;
@@ -216,6 +222,18 @@ th { background: #e4dbc9; }
   font-size: 20pt;
   line-height: 1;
   margin-bottom: 2.7mm;
+}
+
+/* Page 2 contains two cases. The second top-level case heading starts a new
+   full-width row, so the upper and lower cases each balance across two columns. */
+.page-2 .page-columns > h1:nth-of-type(2) {
+  column-span: all;
+  border-top: 0.9pt solid var(--ink);
+  padding-top: 2.6mm;
+  margin-top: 3mm;
+}
+.page-2 .page-columns > h2:nth-of-type(2) {
+  column-span: all;
 }
 
 .page-1 .page-columns { column-gap: 6.5mm; }
