@@ -6,6 +6,7 @@ from pathlib import Path
 
 from scripts.render_casebook import (
     RenderError,
+    build_deep_dive_layout,
     load_issue_meta,
     render_markdown_page,
     split_pages,
@@ -109,6 +110,31 @@ class MarkdownRenderingTests(unittest.TestCase):
             self.assertIn(asset.resolve().as_uri(), html)
             self.assertIn('href="https://example.com/report.pdf"', html)
 
+    def test_deep_dive_layout_puts_figures_and_evidence_modules_on_right(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            issue_dir = Path(tmp)
+            asset = issue_dir / "assets" / "figure.svg"
+            asset.parent.mkdir()
+            asset.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"></svg>',
+                encoding="utf-8",
+            )
+            layout = build_deep_dive_layout(
+                "# Engineering Casebook 007\n\nIntro theme.\n\n---\n\n"
+                "# Test Case\n\n## Test title\n\n**Location - CASE-001**\n\n"
+                "Opening account.\n\n![Figure](assets/figure.svg)\n\n"
+                "### Main mechanism\n\nMechanism explanation.\n\n"
+                "### Engineer's Notebook\n\nReusable lesson.\n\n"
+                "### Sources for this case\n\nhttps://example.com/source",
+                issue_dir,
+            )
+
+            self.assertIn("Test Case", layout["header_html"])
+            self.assertIn("Mechanism", layout["left_html"])
+            self.assertIn("technical-figure", layout["figures_html"])
+            self.assertIn("module-engineers-notebook", layout["right_html"])
+            self.assertIn("module-sources-for-this-case", layout["right_html"])
+
 
 class PdfRenderingTests(unittest.TestCase):
     def _write_issue(self, issue_dir: Path, page_one: str = "Short page one.") -> None:
@@ -122,8 +148,12 @@ class PdfRenderingTests(unittest.TestCase):
         (issue_dir / "snapshots" / "sources.yml").write_text("fixture", encoding="utf-8")
         (issue_dir / "issue.md").write_text(
             "# Engineering Casebook 999 - Fixture\n\nFixture intro.\n\n"
-            "## PAGE 1 - DEEP DIVE\n" + page_one + "\n\n"
-            "![Figure](assets/figure.svg)\n\nhttps://example.com/one\n\n"
+            "## PAGE 1 - DEEP DIVE\n"
+            "# Fixture Deep Dive\n\n## The fixture has a path\n\n"
+            "**Test location - CASE-001**\n\n" + page_one + "\n\n"
+            "![Figure](assets/figure.svg)\n\n"
+            "### Main mechanism\n\nMechanism text.\n\n"
+            "### Sources for this case\n\nhttps://example.com/one\n\n"
             "## PAGE 2 - PRACTICE\nShort page two.\n\nhttps://example.com/two\n\n"
             "## PAGE 3 - WINS\nShort page three.\n\nhttps://example.com/three\n",
             encoding="utf-8",
