@@ -1,0 +1,98 @@
+name: Casebook Publisher CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/casebook-publisher*.yml'
+      - 'scripts/render_casebook.py'
+      - 'scripts/publish_casebook_render.py'
+      - 'scripts/select_casebook_publication.py'
+      - 'templates/magazine.html'
+      - 'templates/magazine.css'
+      - 'requirements-publisher.txt'
+      - 'tests/test_render_casebook.py'
+      - 'tests/test_publish_casebook_render.py'
+      - 'tests/test_select_casebook_publication.py'
+      - 'scripts/casebook_finalizer.py'
+      - 'docs/**'
+      - 'skills/casebook-publisher/SKILL.md'
+      - 'schemas/issue.schema.json'
+      - 'casebook.yml'
+      - 'AGENTS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-render:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install deterministic render system dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes \
+            fonts-dejavu-core \
+            libharfbuzz-subset0 \
+            libpango-1.0-0 \
+            libpangoft2-1.0-0 \
+            poppler-utils
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r requirements-publisher.txt
+
+      - name: Run unit and legacy regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m unittest \
+            tests.test_casebook_blob_handoff_adapter \
+            tests.test_casebook_finalizer \
+            tests.test_casebook_handoff_rescue \
+            tests.test_render_casebook \
+            tests.test_publish_casebook_render \
+            tests.test_select_casebook_publication \
+            -v
+
+      - name: Render ISSUE-006 integration fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .render-ci/pages
+          .venv/bin/python scripts/render_casebook.py \
+            --issue-dir issues/ISSUE-006-capacity-is-conditional \
+            --output .render-ci/ISSUE-006-capacity-is-conditional.pdf \
+            --template-root templates
+          PYTHONPATH="$GITHUB_WORKSPACE" .venv/bin/python - <<'PY'
+          from pathlib import Path
+          from scripts.casebook_finalizer import validate_pdf
+
+          issue = Path('issues/ISSUE-006-capacity-is-conditional')
+          validate_pdf(
+              Path('.render-ci/ISSUE-006-capacity-is-conditional.pdf'),
+              issue,
+              (issue / 'issue.yml').read_text(encoding='utf-8'),
+              4,
+          )
+          PY
+          pdftoppm -png -r 120 \
+            .render-ci/ISSUE-006-capacity-is-conditional.pdf \
+            .render-ci/pages/page
+
+      - name: Upload integration render diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-006-render-diagnostics-${{ github.run_id }}
+          path: .render-ci/
+          if-no-files-found: warn
+          retention-days: 14
