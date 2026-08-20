@@ -143,51 +143,79 @@ blockquote {
   color: var(--muted);
 }
 
+/* Flex boxes are indivisible in WeasyPrint's paged layout. Keep the complete
+   deep-dive grid comfortably shorter than the space below its headline so it
+   remains on PAGE 1 rather than being pushed wholesale onto a fifth page. */
 .deep-dive-header {
-  margin-bottom: 3.2mm;
+  margin-bottom: 2mm;
 }
 .deep-dive-header h1 {
-  margin-bottom: 1.1mm;
+  margin-bottom: 0.7mm;
 }
 .deep-dive-header h2 {
-  font-size: 20pt;
-  line-height: 1;
-  margin-bottom: 1.4mm;
+  font-size: 18.5pt;
+  line-height: 0.98;
+  margin-bottom: 0.9mm;
 }
 .deep-dive-header p {
   color: #66717a;
-  font-size: 7.6pt;
+  font-size: 7.35pt;
+  line-height: 1.05;
   margin: 0;
 }
 .deep-dive-grid {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 5.5mm;
+  gap: 4.5mm;
   width: 100%;
+  font-size: 8.5pt;
+  line-height: 1.1;
 }
 .deep-dive-column {
   flex: 1 1 0;
   width: 0;
   min-width: 0;
 }
+.deep-dive-column p {
+  margin-bottom: 1.1mm;
+}
+.deep-dive-column h3 {
+  margin: 1.45mm 0 0.65mm;
+  font-size: 8.55pt;
+  line-height: 1.02;
+}
+.deep-dive-column h4 {
+  margin: 1.3mm 0 0.55mm;
+}
 .deep-dive-column .technical-figure {
-  margin: 0 0 2mm;
-  padding: 2mm;
+  margin: 0 0 1.25mm;
+  padding: 1.25mm;
   border: 0.6pt solid #8bb4c7;
   background: #edf4f6;
 }
 .deep-dive-column .technical-figure img {
-  max-height: 42mm;
+  max-height: 38mm;
 }
 .deep-dive-column .technical-figure figcaption {
-  margin-top: 0.8mm;
+  margin-top: 0.55mm;
+  font-size: 7pt;
+  line-height: 1.04;
 }
 .deep-dive-column h3:first-child {
   margin-top: 0;
 }
+.deep-dive-column .module-heading {
+  margin-top: 1.35mm;
+  padding: 0.7mm 1.1mm;
+}
+.deep-dive-column .module-sources-for-this-case,
+.deep-dive-column .module-evidence-boundary {
+  font-size: 7.2pt;
+  line-height: 1.04;
+}
 .deep-dive-right .module-sources-for-this-case {
-  margin-top: 2mm;
+  margin-top: 1.3mm;
 }
 
 .module-heading {
