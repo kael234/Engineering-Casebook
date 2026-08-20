@@ -73,8 +73,13 @@ class PublishRenderTests(unittest.TestCase):
         (issue / "snapshots" / "cases.md").write_text("fixture", encoding="utf-8")
         (issue / "snapshots" / "sources.yml").write_text("fixture", encoding="utf-8")
         (issue / "issue.md").write_text(
-            "# Engineering Casebook 099\n\n"
-            "## PAGE 1 - Deep Dive\nShort page.\n\n![Figure](assets/figure.svg)\n\nhttps://example.com/1\n\n"
+            "# Engineering Casebook 099\n\nFixture theme.\n\n"
+            "## PAGE 1 - Deep Dive\n"
+            "# Test Deep Dive\n\n## The fixture has a path\n\n"
+            "**Test location - CASE-901**\n\n"
+            "Short page.\n\n![Figure](assets/figure.svg)\n\n"
+            "### Main mechanism\n\nMechanism text.\n\n"
+            "### Sources for this case\n\nhttps://example.com/1\n\n"
             "## PAGE 2 - Practice\nShort page.\n\nhttps://example.com/2\n\n"
             "## PAGE 3 - Wins\nShort page.\n\nhttps://example.com/3\n",
             encoding="utf-8",
