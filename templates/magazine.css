@@ -1,0 +1,197 @@
+@page {
+  size: A4 portrait;
+  margin: 11mm 12mm 14mm 12mm;
+  background: #f7f3ea;
+  @bottom-left {
+    content: "ENGINEERING CASEBOOK";
+    color: #66717a;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 7.3pt;
+    letter-spacing: 0.12em;
+  }
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    color: #66717a;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 7.3pt;
+  }
+}
+
+:root {
+  --ink: #172433;
+  --muted: #5f6a72;
+  --accent: #9b3f32;
+  --gold: #d8b36a;
+  --paper: #f7f3ea;
+  --panel: #ebe3d4;
+}
+
+html { background: var(--paper); }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-size: 9.1pt;
+  line-height: 1.19;
+  hyphens: auto;
+}
+
+.casebook-page {
+  break-after: page;
+  page-break-after: always;
+}
+.casebook-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1.4pt solid var(--ink);
+  padding-bottom: 2.3mm;
+  margin-bottom: 4mm;
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  text-transform: uppercase;
+}
+.issue-mark {
+  font-size: 7.6pt;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+}
+.page-role {
+  font-size: 7.4pt;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+  font-weight: 700;
+}
+.page-columns {
+  column-count: 2;
+  column-gap: 6mm;
+  column-rule: 0.35pt solid #c8c0b2;
+}
+
+h1, h2, h3, h4 {
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  color: var(--ink);
+  break-after: avoid;
+  page-break-after: avoid;
+}
+h1 {
+  font-size: 19pt;
+  line-height: 1.02;
+  margin: 0 0 1.4mm;
+  letter-spacing: -0.02em;
+  column-span: all;
+}
+h2 {
+  font-size: 12.2pt;
+  line-height: 1.08;
+  margin: 0 0 3mm;
+  color: var(--accent);
+  column-span: all;
+}
+h3 {
+  font-size: 9.4pt;
+  line-height: 1.08;
+  margin: 3mm 0 1.3mm;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+h4 {
+  font-size: 8.8pt;
+  margin: 2.5mm 0 1mm;
+}
+p { margin: 0 0 2.1mm; orphans: 3; widows: 3; }
+strong { font-weight: 700; }
+em { color: #394650; }
+hr {
+  border: 0;
+  border-top: 0.7pt solid #b7ad9c;
+  margin: 3mm 0;
+  column-span: all;
+}
+blockquote {
+  margin: 2.5mm 0;
+  padding: 2mm 2.5mm;
+  border-left: 2.5pt solid var(--accent);
+  background: #efe7da;
+  break-inside: avoid;
+}
+
+.technical-figure {
+  margin: 2.5mm 0 3mm;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  column-span: all;
+}
+.technical-figure img {
+  display: block;
+  width: 100%;
+  max-height: 74mm;
+  object-fit: contain;
+}
+.technical-figure figcaption {
+  margin-top: 1.2mm;
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  font-size: 7.5pt;
+  line-height: 1.15;
+  color: var(--muted);
+}
+
+.module-heading {
+  margin-top: 3mm;
+  padding: 1.6mm 2mm;
+  border-top: 1pt solid var(--accent);
+  border-bottom: 0.5pt solid #c7bba9;
+  background: var(--panel);
+  break-inside: avoid;
+}
+.module-you-are-the-engineer {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.module-engineers-notebook {
+  color: var(--ink);
+  background: #e5cf9f;
+  border-color: var(--gold);
+}
+.module-sources-for-this-case,
+.module-evidence-boundary {
+  font-size: 8.2pt;
+  color: var(--muted);
+  background: transparent;
+  border-top-color: #8c969d;
+}
+.module-the-thread,
+.module-60-second-takeaway,
+.module-from-the-archive {
+  column-span: all;
+}
+
+a {
+  color: #285a6a;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2mm 0 3mm;
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  font-size: 7.8pt;
+  break-inside: avoid;
+}
+th, td {
+  border: 0.5pt solid #8c969d;
+  padding: 1.2mm;
+  vertical-align: top;
+}
+th { background: #e4dbc9; }
+
+.page-1 .page-columns { column-gap: 6.5mm; }
+.page-2 .page-columns { column-gap: 6mm; }
+.page-3 .page-columns,
+.page-4 .page-columns { column-gap: 6mm; }
