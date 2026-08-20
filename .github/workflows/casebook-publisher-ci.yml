@@ -120,12 +120,96 @@ jobs:
             .render-ci/ISSUE-006-capacity-is-conditional.pdf \
             .render-ci/pages/page
 
-      - name: Upload integration render diagnostics
+      - name: Upload ISSUE-006 integration diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-006-render-diagnostics-${{ github.run_id }}
           path: .render-ci/
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14
+
+      - name: Check out ISSUE-007 acceptance fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            '+refs/heads/publish/issue-007-2026-08-19:refs/remotes/origin/publish/issue-007-2026-08-19'
+          git worktree add --detach .issue-007-fixture \
+            refs/remotes/origin/publish/issue-007-2026-08-19
+
+      - name: Render ISSUE-007 acceptance fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$GITHUB_WORKSPACE/.render-ci-007"
+          issue="$GITHUB_WORKSPACE/.issue-007-fixture/issues/ISSUE-007-give-it-a-path"
+          mkdir -p "$output/pages"
+          set +e
+          .venv/bin/python scripts/render_casebook.py \
+            --issue-dir "$issue" \
+            --output "$output/ISSUE-007-give-it-a-path.pdf" \
+            --template-root templates
+          render_status=$?
+          set -e
+
+          if (( render_status != 0 )); then
+            ISSUE_FIXTURE="$issue" OUTPUT_DIR="$output" \
+              PYTHONPATH="$GITHUB_WORKSPACE" .venv/bin/python - <<'PY'
+          import os
+          from pathlib import Path
+          from weasyprint import HTML
+          from scripts.render_casebook import build_html, load_issue_meta, split_pages
+
+          issue = Path(os.environ['ISSUE_FIXTURE']).resolve()
+          output = Path(os.environ['OUTPUT_DIR'])
+          meta = load_issue_meta(issue / 'issue.yml')
+          pages = split_pages((issue / meta.markdown).read_text(encoding='utf-8'), meta.page_count)
+          for page in pages:
+              document = build_html(
+                  issue,
+                  meta,
+                  [page],
+                  Path('templates/magazine.html'),
+                  Path('templates/magazine.css'),
+              )
+              HTML(string=document, base_url=str(issue)).write_pdf(
+                  output / f'declared-page-{page.number}.pdf'
+              )
+          PY
+            for pdf in "$output"/declared-page-*.pdf; do
+              stem="$(basename "$pdf" .pdf)"
+              pdftoppm -png -r 140 "$pdf" "$output/pages/$stem"
+            done
+            exit "$render_status"
+          fi
+
+          ISSUE_FIXTURE="$issue" OUTPUT_DIR="$output" \
+            PYTHONPATH="$GITHUB_WORKSPACE" .venv/bin/python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.casebook_finalizer import validate_pdf
+
+          issue = Path(os.environ['ISSUE_FIXTURE'])
+          output = Path(os.environ['OUTPUT_DIR'])
+          validate_pdf(
+              output / 'ISSUE-007-give-it-a-path.pdf',
+              issue,
+              (issue / 'issue.yml').read_text(encoding='utf-8'),
+              4,
+          )
+          PY
+          pdftoppm -png -r 140 \
+            "$output/ISSUE-007-give-it-a-path.pdf" \
+            "$output/pages/page"
+
+      - name: Upload ISSUE-007 acceptance diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-007-render-diagnostics-${{ github.run_id }}
+          path: .render-ci-007/
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 14
