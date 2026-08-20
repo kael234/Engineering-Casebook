@@ -143,6 +143,50 @@ blockquote {
   color: var(--muted);
 }
 
+.deep-dive-header {
+  margin-bottom: 3.2mm;
+}
+.deep-dive-header h1 {
+  margin-bottom: 1.1mm;
+}
+.deep-dive-header h2 {
+  font-size: 20pt;
+  line-height: 1;
+  margin-bottom: 1.4mm;
+}
+.deep-dive-header p {
+  color: #66717a;
+  font-size: 7.6pt;
+  margin: 0;
+}
+.deep-dive-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 5.5mm;
+  align-items: start;
+}
+.deep-dive-column {
+  min-width: 0;
+}
+.deep-dive-column .technical-figure {
+  margin: 0 0 2.2mm;
+  padding: 2.4mm;
+  border: 0.6pt solid #8bb4c7;
+  background: #edf4f6;
+}
+.deep-dive-column .technical-figure img {
+  max-height: 46mm;
+}
+.deep-dive-column .technical-figure figcaption {
+  margin-top: 1mm;
+}
+.deep-dive-column h3:first-child {
+  margin-top: 0;
+}
+.deep-dive-right .module-sources-for-this-case {
+  margin-top: 2.2mm;
+}
+
 .module-heading {
   margin-top: 2.1mm;
   padding: 1.1mm 1.5mm;
@@ -175,8 +219,8 @@ blockquote {
   column-span: all;
 }
 
-/* Markdown source dossiers already name each source. Preserve the live URI
-   annotation without wasting several lines printing the full raw URL. */
+/* Source dossiers already name each source. Preserve the live URI annotation
+   without spending several lines printing the entire raw URL. */
 a {
   color: #285a6a;
   text-decoration: underline;
@@ -202,28 +246,6 @@ th, td {
 }
 th { background: #e4dbc9; }
 
-/* The pre-PAGE title/date/theme are repository metadata. The printed issue
-   carries its identity in the running header and starts at the PAGE 1 case. */
-.page-1 .page-columns > h1:first-of-type,
-.page-1 .page-columns > p:first-of-type,
-.page-1 .page-columns > p:nth-of-type(2),
-.page-1 .page-columns > hr:first-of-type {
-  display: none;
-}
-.page-1 .page-columns > h1:nth-of-type(2),
-.page-1 .page-columns > h2:first-of-type {
-  column-span: all;
-}
-.page-1 .page-columns > h1:nth-of-type(2) {
-  margin-top: 0;
-}
-.page-1 .page-columns > h2:first-of-type {
-  font-family: "DejaVu Serif", Georgia, serif;
-  font-size: 20pt;
-  line-height: 1;
-  margin-bottom: 2.7mm;
-}
-
 /* Page 2 contains two cases. The second top-level case heading starts a new
    full-width row, so the upper and lower cases each balance across two columns. */
 .page-2 .page-columns > h1:nth-of-type(2) {
@@ -236,7 +258,6 @@ th { background: #e4dbc9; }
   column-span: all;
 }
 
-.page-1 .page-columns { column-gap: 6.5mm; }
 .page-2 .page-columns,
 .page-3 .page-columns,
 .page-4 .page-columns { column-gap: 6mm; }
