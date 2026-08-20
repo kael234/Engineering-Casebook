@@ -15,9 +15,11 @@
     {% if page.mode == 'deep_dive' %}
     <div class="deep-dive-header">{{ page.header_html | safe }}</div>
     <div class="deep-dive-grid">
-      {{ page.left_html | safe }}
-      {{ page.figures_html | safe }}
-      {{ page.right_html | safe }}
+      <div class="deep-dive-column deep-dive-left">{{ page.left_html | safe }}</div>
+      <div class="deep-dive-column deep-dive-right">
+        <div class="deep-dive-figures">{{ page.figures_html | safe }}</div>
+        {{ page.right_html | safe }}
+      </div>
     </div>
     {% else %}
     <div class="page-columns">{{ page.html | safe }}</div>
