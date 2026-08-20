@@ -1,19 +1,19 @@
 @page {
   size: A4 portrait;
-  margin: 11mm 12mm 14mm 12mm;
+  margin: 10mm 11.5mm 13mm 11.5mm;
   background: #f7f3ea;
   @bottom-left {
     content: "ENGINEERING CASEBOOK";
     color: #66717a;
     font-family: "DejaVu Sans", sans-serif;
-    font-size: 7.3pt;
+    font-size: 7.2pt;
     letter-spacing: 0.12em;
   }
   @bottom-right {
     content: counter(page) " / " counter(pages);
     color: #66717a;
     font-family: "DejaVu Sans", sans-serif;
-    font-size: 7.3pt;
+    font-size: 7.2pt;
   }
 }
 
@@ -32,8 +32,8 @@ body {
   color: var(--ink);
   background: var(--paper);
   font-family: "DejaVu Serif", Georgia, serif;
-  font-size: 9.1pt;
-  line-height: 1.19;
+  font-size: 8.8pt;
+  line-height: 1.16;
   hyphens: auto;
 }
 
@@ -49,20 +49,20 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1.4pt solid var(--ink);
-  padding-bottom: 2.3mm;
-  margin-bottom: 4mm;
+  border-bottom: 1.25pt solid var(--ink);
+  padding-bottom: 2mm;
+  margin-bottom: 3mm;
   font-family: "DejaVu Sans", Arial, sans-serif;
   text-transform: uppercase;
 }
 .issue-mark {
-  font-size: 7.6pt;
+  font-size: 7.5pt;
   letter-spacing: 0.14em;
   font-weight: 700;
 }
 .page-role {
-  font-size: 7.4pt;
-  letter-spacing: 0.09em;
+  font-size: 7.3pt;
+  letter-spacing: 0.08em;
   color: var(--accent);
   font-weight: 700;
 }
@@ -70,6 +70,7 @@ body {
   column-count: 2;
   column-gap: 6mm;
   column-rule: 0.35pt solid #c8c0b2;
+  column-fill: balance;
 }
 
 h1, h2, h3, h4 {
@@ -79,72 +80,71 @@ h1, h2, h3, h4 {
   page-break-after: avoid;
 }
 h1 {
-  font-size: 19pt;
-  line-height: 1.02;
-  margin: 0 0 1.4mm;
-  letter-spacing: -0.02em;
-  column-span: all;
+  font-size: 9.2pt;
+  line-height: 1.05;
+  margin: 0 0 1mm;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
 }
 h2 {
-  font-size: 12.2pt;
-  line-height: 1.08;
-  margin: 0 0 3mm;
-  color: var(--accent);
-  column-span: all;
+  font-size: 15pt;
+  line-height: 1.02;
+  margin: 0 0 2.2mm;
+  color: var(--ink);
+  letter-spacing: -0.012em;
 }
 h3 {
-  font-size: 9.4pt;
-  line-height: 1.08;
-  margin: 3mm 0 1.3mm;
+  font-size: 8.9pt;
+  line-height: 1.06;
+  margin: 2.3mm 0 1mm;
   text-transform: uppercase;
   letter-spacing: 0.035em;
 }
 h4 {
-  font-size: 8.8pt;
-  margin: 2.5mm 0 1mm;
+  font-size: 8.5pt;
+  margin: 2mm 0 0.8mm;
 }
-p { margin: 0 0 2.1mm; orphans: 3; widows: 3; }
+p { margin: 0 0 1.65mm; orphans: 3; widows: 3; }
 strong { font-weight: 700; }
 em { color: #394650; }
 hr {
   border: 0;
-  border-top: 0.7pt solid #b7ad9c;
-  margin: 3mm 0;
-  column-span: all;
+  border-top: 0.6pt solid #b7ad9c;
+  margin: 2.2mm 0;
 }
 blockquote {
-  margin: 2.5mm 0;
-  padding: 2mm 2.5mm;
-  border-left: 2.5pt solid var(--accent);
+  margin: 2mm 0;
+  padding: 1.7mm 2.2mm;
+  border-left: 2.3pt solid var(--accent);
   background: #efe7da;
   break-inside: avoid;
 }
 
 .technical-figure {
-  margin: 2.5mm 0 3mm;
+  margin: 1.8mm 0 2.2mm;
   break-inside: avoid;
   page-break-inside: avoid;
-  column-span: all;
 }
 .technical-figure img {
   display: block;
   width: 100%;
-  max-height: 74mm;
+  max-height: 56mm;
   object-fit: contain;
 }
 .technical-figure figcaption {
-  margin-top: 1.2mm;
+  margin-top: 0.9mm;
   font-family: "DejaVu Sans", Arial, sans-serif;
-  font-size: 7.5pt;
-  line-height: 1.15;
+  font-size: 7.2pt;
+  line-height: 1.12;
   color: var(--muted);
 }
 
 .module-heading {
-  margin-top: 3mm;
-  padding: 1.6mm 2mm;
-  border-top: 1pt solid var(--accent);
-  border-bottom: 0.5pt solid #c7bba9;
+  margin-top: 2.2mm;
+  padding: 1.2mm 1.6mm;
+  border-top: 0.9pt solid var(--accent);
+  border-bottom: 0.45pt solid #c7bba9;
   background: var(--panel);
   break-inside: avoid;
 }
@@ -160,7 +160,8 @@ blockquote {
 }
 .module-sources-for-this-case,
 .module-evidence-boundary {
-  font-size: 8.2pt;
+  font-size: 7.7pt;
+  line-height: 1.12;
   color: var(--muted);
   background: transparent;
   border-top-color: #8c969d;
@@ -175,23 +176,45 @@ a {
   color: #285a6a;
   text-decoration: underline;
   overflow-wrap: anywhere;
+  font-size: 7.2pt;
 }
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 2mm 0 3mm;
+  margin: 1.6mm 0 2.2mm;
   font-family: "DejaVu Sans", Arial, sans-serif;
-  font-size: 7.8pt;
+  font-size: 7.5pt;
   break-inside: avoid;
 }
 th, td {
   border: 0.5pt solid #8c969d;
-  padding: 1.2mm;
+  padding: 1mm;
   vertical-align: top;
 }
 th { background: #e4dbc9; }
 
+/* The pre-PAGE title/date/theme are repository metadata. The printed issue
+   carries its identity in the running header and starts at the PAGE 1 case. */
+.page-1 .page-columns > h1:first-of-type,
+.page-1 .page-columns > p:first-of-type,
+.page-1 .page-columns > p:nth-of-type(2),
+.page-1 .page-columns > hr:first-of-type {
+  display: none;
+}
+.page-1 .page-columns > h1:nth-of-type(2),
+.page-1 .page-columns > h2:first-of-type {
+  column-span: all;
+}
+.page-1 .page-columns > h1:nth-of-type(2) {
+  margin-top: 0;
+}
+.page-1 .page-columns > h2:first-of-type {
+  font-size: 20pt;
+  line-height: 1.01;
+  margin-bottom: 3mm;
+}
+
 .page-1 .page-columns { column-gap: 6.5mm; }
-.page-2 .page-columns { column-gap: 6mm; }
+.page-2 .page-columns,
 .page-3 .page-columns,
 .page-4 .page-columns { column-gap: 6mm; }
