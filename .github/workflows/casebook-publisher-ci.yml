@@ -127,4 +127,5 @@ jobs:
           name: issue-006-render-diagnostics-${{ github.run_id }}
           path: .render-ci/
           if-no-files-found: warn
+          include-hidden-files: true
           retention-days: 14
