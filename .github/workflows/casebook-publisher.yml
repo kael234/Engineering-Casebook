@@ -1,0 +1,257 @@
+name: Casebook Deterministic Publisher
+
+on:
+  schedule:
+    # Thursday 04:00 Indian/Mahe (UTC+4), one hour before ChatGPT review.
+    - cron: '0 0 * * 4'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: Optional publish/issue-###-YYYY-MM-DD branch
+        required: false
+        type: string
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'issues/**/issue.md'
+      - 'issues/**/issue.yml'
+      - 'issues/**/assets/**'
+      - 'issues/**/snapshots/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: casebook-render-${{ github.event_name == 'pull_request' && github.head_ref || inputs.target_branch || 'scheduled' }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.head_ref, 'publish/issue-'))
+    runs-on: ubuntu-24.04
+    env:
+      REQUESTED_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.target_branch || '' }}
+
+    steps:
+      - name: Check out trusted publisher tooling from main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          path: tooling
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install deterministic render dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes \
+            fonts-dejavu-core \
+            libharfbuzz-subset0 \
+            libpango-1.0-0 \
+            libpangoft2-1.0-0 \
+            poppler-utils
+          python3 -m venv "$GITHUB_WORKSPACE/tooling/.venv"
+          "$GITHUB_WORKSPACE/tooling/.venv/bin/python" -m pip install --upgrade pip
+          "$GITHUB_WORKSPACE/tooling/.venv/bin/python" -m pip install \
+            -r "$GITHUB_WORKSPACE/tooling/requirements-publisher.txt"
+
+      - name: Select publication branch
+        id: select
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C tooling fetch --no-tags origin \
+            '+refs/heads/publish/issue-*:refs/remotes/origin/publish/issue-*'
+          args=(--repo-root "$GITHUB_WORKSPACE/tooling")
+          if [[ -n "$REQUESTED_BRANCH" ]]; then
+            args+=(--target-branch "$REQUESTED_BRANCH")
+          fi
+          selection="$(PYTHONPATH="$GITHUB_WORKSPACE/tooling" \
+            "$GITHUB_WORKSPACE/tooling/.venv/bin/python" \
+            "$GITHUB_WORKSPACE/tooling/scripts/select_casebook_publication.py" \
+            "${args[@]}")"
+          if [[ "$selection" == "NOOP" ]]; then
+            echo "No unfinished publication branch exists."
+            echo 'noop=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          IFS=$'\t' read -r branch issue_dir issue_id issue_status <<< "$selection"
+          if [[ -z "$branch" || -z "$issue_dir" || -z "$issue_id" ]]; then
+            echo "Invalid selection output: $selection" >&2
+            exit 1
+          fi
+          echo 'noop=false' >> "$GITHUB_OUTPUT"
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
+          printf 'issue_dir=%s\n' "$issue_dir" >> "$GITHUB_OUTPUT"
+          printf 'issue_id=%s\n' "$issue_id" >> "$GITHUB_OUTPUT"
+          printf 'issue_status=%s\n' "$issue_status" >> "$GITHUB_OUTPUT"
+
+      - name: Check out publication branch as data
+        if: steps.select.outputs.noop == 'false'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ steps.select.outputs.branch }}
+          path: publication
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Record expected publication head
+        if: steps.select.outputs.noop == 'false'
+        id: head
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'sha=%s\n' "$(git -C publication rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Render and mechanically validate issue
+        if: steps.select.outputs.noop == 'false'
+        id: publish
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ steps.select.outputs.branch }}
+          ISSUE_DIR: ${{ steps.select.outputs.issue_dir }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE/tooling" \
+            "$GITHUB_WORKSPACE/tooling/.venv/bin/python" \
+            "$GITHUB_WORKSPACE/tooling/scripts/publish_casebook_render.py" \
+            --repo-root "$GITHUB_WORKSPACE/publication" \
+            --issue-dir "$ISSUE_DIR" \
+            --branch "$TARGET_BRANCH" \
+            --tooling-root "$GITHUB_WORKSPACE/tooling" \
+            | tee "$GITHUB_WORKSPACE/publish-result.txt"
+
+      - name: Render page diagnostics
+        if: steps.select.outputs.noop == 'false'
+        shell: bash
+        env:
+          ISSUE_DIR: ${{ steps.select.outputs.issue_dir }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/render-diagnostics"
+          pdf_path="$(PYTHONPATH="$GITHUB_WORKSPACE/tooling" \
+            "$GITHUB_WORKSPACE/tooling/.venv/bin/python" - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+          issue = Path(os.environ['GITHUB_WORKSPACE']) / 'publication' / os.environ['ISSUE_DIR']
+          data = yaml.safe_load((issue / 'issue.yml').read_text(encoding='utf-8'))
+          print(issue / data['pdf']['path'])
+          PY
+          )"
+          pdftoppm -png -r 140 "$pdf_path" "$GITHUB_WORKSPACE/render-diagnostics/page"
+          cp "$pdf_path" "$GITHUB_WORKSPACE/render-diagnostics/"
+          cp "$GITHUB_WORKSPACE/publication/$ISSUE_DIR/preview.jpg" \
+            "$GITHUB_WORKSPACE/render-diagnostics/"
+
+      - name: Upload exact render diagnostics
+        if: always() && steps.select.outputs.noop == 'false'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.select.outputs.issue_id }}-render-${{ github.run_id }}
+          path: |
+            render-diagnostics/
+            publish-result.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit rendered issue only
+        if: steps.select.outputs.noop == 'false'
+        id: commit
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ steps.select.outputs.branch }}
+          ISSUE_DIR: ${{ steps.select.outputs.issue_dir }}
+          ISSUE_ID: ${{ steps.select.outputs.issue_id }}
+          EXPECTED_HEAD: ${{ steps.head.outputs.sha }}
+        run: |
+          set -euo pipefail
+          git -C publication config user.name "github-actions[bot]"
+          git -C publication config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publication add -- "$ISSUE_DIR"
+          mapfile -t staged < <(git -C publication diff --cached --name-only)
+          if (( ${#staged[@]} == 0 )); then
+            echo "No render changes to commit."
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          for path in "${staged[@]}"; do
+            if [[ "$path" != "$ISSUE_DIR" && "$path" != "$ISSUE_DIR"/* ]]; then
+              echo "Refusing to commit path outside rendered issue: $path" >&2
+              exit 1
+            fi
+          done
+          remote_head="$(git -C publication ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          if [[ "$remote_head" != "$EXPECTED_HEAD" ]]; then
+            echo "Publication branch moved during render: expected $EXPECTED_HEAD, found $remote_head" >&2
+            exit 1
+          fi
+          git -C publication commit -m "build: render $ISSUE_ID"
+          git -C publication push origin "HEAD:$TARGET_BRANCH"
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+          printf 'commit_sha=%s\n' "$(git -C publication rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure draft publication PR exists
+        if: steps.select.outputs.noop == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ steps.select.outputs.branch }}
+          ISSUE_ID: ${{ steps.select.outputs.issue_id }}
+          ISSUE_DIR: ${{ steps.select.outputs.issue_dir }}
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
+            --base main --head "$TARGET_BRANCH" --json number --jq '.[0].number // empty')"
+          if [[ -n "$existing" ]]; then
+            echo "Publication PR #$existing already exists."
+            exit 0
+          fi
+          title="$(PYTHONPATH="$GITHUB_WORKSPACE/tooling" \
+            "$GITHUB_WORKSPACE/tooling/.venv/bin/python" - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+          issue = Path(os.environ['GITHUB_WORKSPACE']) / 'publication' / os.environ['ISSUE_DIR']
+          data = yaml.safe_load((issue / 'issue.yml').read_text(encoding='utf-8'))
+          print(data['title'])
+          PY
+          )"
+          body_file="$GITHUB_WORKSPACE/publication-pr-body.md"
+          printf '## %s — %s\n\nDeterministically rendered and mechanically validated. Awaiting visual publication review.\n' \
+            "$ISSUE_ID" "$title" > "$body_file"
+          gh pr create --repo "$GITHUB_REPOSITORY" --draft --base main --head "$TARGET_BRANCH" \
+            --title "Publish Engineering Casebook $ISSUE_ID" \
+            --body-file "$body_file"
+
+      - name: Write workflow summary
+        if: always()
+        shell: bash
+        env:
+          NOOP: ${{ steps.select.outputs.noop }}
+          TARGET_BRANCH: ${{ steps.select.outputs.branch }}
+          ISSUE_ID: ${{ steps.select.outputs.issue_id }}
+          PREVIOUS_STATUS: ${{ steps.select.outputs.issue_status }}
+          CHANGED: ${{ steps.commit.outputs.changed }}
+          COMMIT_SHA: ${{ steps.commit.outputs.commit_sha }}
+        run: |
+          {
+            echo '# Casebook deterministic publisher'
+            if [[ "$NOOP" == 'true' ]]; then
+              echo 'No unfinished publication branch was found.'
+            else
+              echo "- Issue: $ISSUE_ID"
+              echo "- Branch: $TARGET_BRANCH"
+              echo "- Previous state: $PREVIOUS_STATUS"
+              echo "- Render commit created: ${CHANGED:-false}"
+              echo "- Commit: ${COMMIT_SHA:-unchanged}"
+              echo '- Next gate: visual publication review'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
