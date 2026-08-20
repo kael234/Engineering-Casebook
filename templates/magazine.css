@@ -160,31 +160,34 @@ blockquote {
   margin: 0;
 }
 .deep-dive-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  column-gap: 5.5mm;
-  align-items: start;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 5.5mm;
+  width: 100%;
 }
 .deep-dive-column {
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
 }
 .deep-dive-column .technical-figure {
-  margin: 0 0 2.2mm;
-  padding: 2.4mm;
+  margin: 0 0 2mm;
+  padding: 2mm;
   border: 0.6pt solid #8bb4c7;
   background: #edf4f6;
 }
 .deep-dive-column .technical-figure img {
-  max-height: 46mm;
+  max-height: 42mm;
 }
 .deep-dive-column .technical-figure figcaption {
-  margin-top: 1mm;
+  margin-top: 0.8mm;
 }
 .deep-dive-column h3:first-child {
   margin-top: 0;
 }
 .deep-dive-right .module-sources-for-this-case {
-  margin-top: 2.2mm;
+  margin-top: 2mm;
 }
 
 .module-heading {
