@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ issue_id }} - {{ title }}</title>
+  <style>{{ css }}</style>
+</head>
+<body>
+  {% for page in pages %}
+  <section class="casebook-page page-{{ page.number }}">
+    <header class="page-header">
+      <span class="issue-mark">ENGINEERING CASEBOOK · {{ issue_number }}</span>
+      <span class="page-role">{{ page.title }}</span>
+    </header>
+    <div class="page-columns">{{ page.html | safe }}</div>
+  </section>
+  {% endfor %}
+</body>
+</html>
