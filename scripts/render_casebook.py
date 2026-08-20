@@ -272,17 +272,39 @@ def build_deep_dive_layout(markdown: str, issue_dir: pathlib.Path) -> dict[str, 
     if case_match is None:
         raise RenderError("deep-dive page requires a case heading")
 
-    # Ignore the issue-level preamble completely. It is already represented by
-    # the running header and was the source of ambiguous block grouping in the
-    # first renderer attempt.
-    blocks = _markdown_blocks(markdown[case_match.start() :])
-    if len(blocks) < 3:
-        raise RenderError("deep-dive page requires case heading, title and metadata")
-    if not blocks[0].startswith("# ") or not blocks[1].startswith("## "):
-        raise RenderError("deep-dive page requires case heading followed by title")
+    lines = markdown[case_match.start() :].splitlines()
+    if not lines or not lines[0].strip().startswith("# "):
+        raise RenderError("deep-dive page requires a case heading")
 
-    header_blocks = blocks[:3]
-    body_blocks = blocks[3:]
+    title_index = next(
+        (
+            index
+            for index, line in enumerate(lines[1:], 1)
+            if line.strip().startswith("## ")
+        ),
+        -1,
+    )
+    if title_index < 0:
+        raise RenderError("deep-dive page requires a case title")
+
+    metadata_index = next(
+        (
+            index
+            for index, line in enumerate(lines[title_index + 1 :], title_index + 1)
+            if line.strip()
+        ),
+        -1,
+    )
+    if metadata_index < 0:
+        raise RenderError("deep-dive page requires case metadata")
+
+    case_heading = lines[0].strip()
+    case_title = lines[title_index].strip()
+    case_metadata = lines[metadata_index].strip()
+    header_blocks = [case_heading, case_title, case_metadata]
+    body_markdown = "\n".join(lines[metadata_index + 1 :]).strip()
+    body_blocks = _markdown_blocks(body_markdown)
+
     figure_blocks = [block for block in body_blocks if block.startswith("![")]
     text_blocks = [
         block
