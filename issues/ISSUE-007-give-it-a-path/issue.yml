@@ -1,0 +1,50 @@
+schema_version: 1
+id: ISSUE-007
+number: 7
+title: Give It a Path
+publication_date: 2026-08-19
+revision: 1
+status: rendered
+page_count: 4
+page_count_override_reason: Four pages preserve normal 9 pt-class body typography,
+  readable source dossiers and teaching-scale figures while keeping the Penobscot
+  Narrows and Po Shan engineering wins intact and reserving a comfortable closing
+  synthesis band.
+original_format: magazine_v3
+diagnostic: false
+slots:
+- role: deep_dive
+  case_id: CASE-028
+- role: site_problem
+  case_id: CASE-029
+- role: detail_product
+  case_id: CASE-030
+- role: engineering_win_structural
+  case_id: CASE-031
+- role: engineering_win_geotechnical
+  case_id: CASE-032
+markdown: issue.md
+snapshots:
+  cases: snapshots/cases.md
+  sources: snapshots/sources.yml
+assets:
+- assets/CASE-028-fig-01-thick-cantilever-load-path.svg
+- assets/CASE-028-fig-02-deterioration-sequence.svg
+- assets/CASE-029-fig-01-progressive-groundwater-path.svg
+- assets/CASE-030-fig-01-sliding-bearing-interface.svg
+- assets/CASE-031-fig-01-damper-decay-comparison.svg
+- assets/CASE-032-fig-01-groundwater-regulation-system.svg
+note: PDF and preview generated deterministically and mechanically validated by GitHub
+  Actions; awaiting visual publication review.
+pdf:
+  path: ISSUE-007-give-it-a-path.pdf
+  byte_size: 73947
+  sha256: b352824788ccc53bb416d66df55ca338dbe15c76401200a714e0fdcef33c892a
+preview:
+  path: preview.jpg
+  byte_size: 267778
+  sha256: 67216045dfec9eccc1b959b2f03fcb619b16889a87ee4e1bde317826cfd7e992
+render:
+  renderer: casebook-renderer/1
+  mechanical_validation: passed
+  visual_review: pending

@@ -1,0 +1,65 @@
+schema_version: 1
+id: SRC-0036
+title: Commission of Inquiry into the Collapse of a Portion of the de la Concorde Overpass, October 3, 2006-October 15, 2007 - Report
+organisation: Commission d'enquête sur le viaduc de la Concorde / National Assembly of Quebec Library
+publication_date: 2007
+source_type: official_inquiry
+authority_tier: A
+url: https://www.bibliotheque.assnat.qc.ca/guides/fr/commissions-d-enquete-au-quebec-depuis-1867/7724-commission-johnson-2007
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0037
+title: "Concorde Overpass Collapse: Structural Aspects"
+organisation: American Society of Civil Engineers
+publication_date: 2011-12
+source_type: peer_reviewed_case_history
+authority_tier: A
+url: https://doi.org/10.1061/(ASCE)CF.1943-5509.0000183
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0038
+title: Report on the Ching Cheung Road Landslide of 3 August 1997 (GEO Report No. 78)
+organisation: Geotechnical Engineering Office / Civil Engineering and Development Department, Hong Kong
+publication_date: 1998
+source_type: government_geotechnical_investigation
+authority_tier: A
+url: https://www.cedd.gov.hk/eng/publications/geo/geo-reports/geo_rpt078/index.html
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0039
+title: Investigation of the November 2, 2013 Collapse of Concrete Beams at Fort Lauderdale-Hollywood Airport Runway Project
+organisation: Occupational Safety and Health Administration, U.S. Department of Labor
+publication_date: 2014-04
+source_type: government_forensic_engineering_report
+authority_tier: A
+url: https://www.osha.gov/sites/default/files/2019-12/2014_r_02.pdf
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0040
+title: Dynamic Properties of Stay Cables on the Penobscot Narrows Bridge (FHWA-HRT-14-067)
+organisation: Federal Highway Administration
+publication_date: 2014-09
+source_type: government_structural_research_report
+authority_tier: A
+url: https://www.fhwa.dot.gov/publications/research/infrastructure/structures/bridge/14067/index.cfm
+accessed_on: 2026-08-19
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0041
+title: Po Shan Drainage Tunnel - Landslide Sci-Tech Chamber
+organisation: Geotechnical Engineering Office / Civil Engineering and Development Department, Hong Kong
+publication_date: unknown
+source_type: government_project_documentation
+authority_tier: A
+url: https://hkss.cedd.gov.hk/hkss/en/visit-tour/po-shan-drainage-tunnel/index.html
+accessed_on: 2026-08-19
+redistribution: linked_only
