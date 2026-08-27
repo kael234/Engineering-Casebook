@@ -4,7 +4,7 @@ number: 7
 title: Give It a Path
 publication_date: 2026-08-19
 revision: 1
-status: rendered
+status: published
 page_count: 4
 page_count_override_reason: Four pages preserve normal 9 pt-class body typography,
   readable source dossiers and teaching-scale figures while keeping the Penobscot
@@ -35,7 +35,7 @@ assets:
 - assets/CASE-031-fig-01-damper-decay-comparison.svg
 - assets/CASE-032-fig-01-groundwater-regulation-system.svg
 note: PDF and preview generated deterministically and mechanically validated by GitHub
-  Actions; awaiting visual publication review.
+  Actions; exact rendered PDF passed visual publication review on 2026-08-26.
 pdf:
   path: ISSUE-007-give-it-a-path.pdf
   byte_size: 73947
@@ -47,4 +47,4 @@ preview:
 render:
   renderer: casebook-renderer/1
   mechanical_validation: passed
-  visual_review: pending
+  visual_review: passed
