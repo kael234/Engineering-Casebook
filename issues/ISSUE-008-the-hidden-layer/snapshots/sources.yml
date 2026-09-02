@@ -1,0 +1,120 @@
+schema_version: 1
+id: SRC-0042
+title: Collapse of the Fern Hollow Bridge, Pittsburgh, Pennsylvania, January 28, 2022 (HIR-24-02)
+organisation: National Transportation Safety Board
+publication_date: 2024-02-21
+source_type: government_forensic_engineering_report
+authority_tier: A
+url: https://www.ntsb.gov/investigations/AccidentReports/Reports/HIR2402.pdf
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0043
+title: Inspection Finding Follow-up Actions for Uncoated Weathering Steel Bridges
+organisation: Federal Highway Administration
+publication_date: 2023-07-19
+source_type: government_bridge_inspection_guidance
+authority_tier: A
+url: https://www.fhwa.dot.gov/bridge/inspection/Memo_July2023_UWS.cfm
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0044
+title: Enhanced landslide mobility by basal liquefaction - the 2014 SR530 (Oso), Washington landslide
+organisation: U.S. Geological Survey / Geological Society of America Bulletin
+publication_date: 2019-06-25
+source_type: peer_reviewed_case_history
+authority_tier: A
+url: https://pubs.usgs.gov/publication/70209110
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0045
+title: Geotechnical soil characterization of intact Quaternary deposits forming the March 22, 2014 SR-530 (Oso) landslide, Snohomish County, Washington
+organisation: U.S. Geological Survey
+publication_date: 2015-05-22
+source_type: government_geotechnical_report
+authority_tier: A
+url: https://pubs.usgs.gov/of/2015/1089/
+accessed_on: 2026-09-03
+redistribution: public_domain
+---
+schema_version: 1
+id: SRC-0046
+title: Report of the Independent Inquiry into the Construction of Edinburgh Schools
+organisation: Independent Inquiry commissioned by the City of Edinburgh Council
+publication_date: 2017-02
+source_type: official_independent_inquiry
+authority_tier: A
+url: https://www.labss.org/sites/default/files/Inquiry_into_Edinburgh_Schools___February_2017_FINAL_VERSION.pdf
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0047
+title: SCOSS Alert - Inquiry into the construction of Edinburgh schools
+organisation: Institution of Structural Engineers
+publication_date: 2017-04-03
+source_type: professional_safety_guidance
+authority_tier: B
+url: https://www.istructe.org/journal/volumes/volume-95-(2017)/issue-4/scoss-alert-inquiry-into-the-construction/
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0048
+title: Forth Replacement Crossing Environmental Statement - Chapter 2 Need for the Scheme
+organisation: Transport Scotland
+publication_date: unknown
+source_type: government_project_documentation
+authority_tier: A
+url: https://www.transport.gov.scot/publication/forth-replacement-crossing-environmental-statement/j11223-007/
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0049
+title: Forth Road Bridge maintenance - EIR release
+organisation: Scottish Government
+publication_date: 2017-11-30
+source_type: government_information_release
+authority_tier: A
+url: https://www.gov.scot/publications/foi-17-02563/
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0050
+title: Elliott Bay Seawall Existing Conditions Report
+organisation: City of Seattle
+publication_date: 2008-10
+source_type: government_existing_conditions_report
+authority_tier: A
+url: https://www.seattle.gov/documents/departments/waterfront/usace_seawall_existing_conditions_report.pdf
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0051
+title: A Seawall Update - Jet Grouting, It's providing a strong foundation
+organisation: Seattle Department of Transportation
+publication_date: 2015-02-11
+source_type: government_project_documentation
+authority_tier: A
+url: https://sdotblog.seattle.gov/2015/02/11/a-seawall-update-jet-grouting-its-providing-a-strong-foundation/
+accessed_on: 2026-09-03
+redistribution: linked_only
+---
+schema_version: 1
+id: SRC-0052
+title: Seawall - Waterfront
+organisation: City of Seattle
+publication_date: unknown
+source_type: government_project_documentation
+authority_tier: A
+url: https://seattle.gov/waterfront/projects/seawall
+accessed_on: 2026-09-03
+redistribution: linked_only

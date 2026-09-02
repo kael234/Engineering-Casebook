@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+<title id="title">Basal liquefaction and long landslide runout</title>
+<desc id="desc">Conceptual cross-section showing landslide blocks moving from a source slope onto wet alluvium where elevated pore pressure and basal liquefaction reduce resistance. Based on SRC-0044 and SRC-0045.</desc>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1f2937"/></marker></defs>
+<rect width="900" height="420" fill="#ffffff"/>
+<path d="M0 320 L180 120 L330 260 L900 260 L900 420 L0 420 Z" fill="#d1d5db" stroke="#1f2937" stroke-width="3"/>
+<path d="M310 260 H900 V335 H360 C330 310 315 286 310 260 Z" fill="#bfdbfe" opacity="0.9"/>
+<path d="M190 180 L325 235 L300 285 L150 230 Z" fill="#9ca3af" stroke="#1f2937" stroke-width="3"/>
+<path d="M355 205 L475 225 L465 280 L340 265 Z" fill="#9ca3af" stroke="#1f2937" stroke-width="3"/>
+<path d="M500 210 L625 220 L620 278 L490 274 Z" fill="#9ca3af" stroke="#1f2937" stroke-width="3"/>
+<path d="M250 165 C360 145 470 150 590 175" fill="none" stroke="#1f2937" stroke-width="4" marker-end="url(#a)"/>
+<text x="430" y="130" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" fill="#1f2937">translating slide blocks</text>
+<text x="610" y="315" font-family="Arial, sans-serif" font-size="22" fill="#2563eb">wet alluvium: elevated pore pressure</text>
+<text x="610" y="352" font-family="Arial, sans-serif" font-size="20" fill="#2563eb">reduced basal resistance</text>
+<circle cx="420" cy="306" r="8" fill="#2563eb"/><circle cx="455" cy="320" r="7" fill="#2563eb"/><circle cx="505" cy="304" r="8" fill="#2563eb"/>
+<text x="120" y="85" font-family="Arial, sans-serif" font-size="21" fill="#374151">source slope</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+<title id="title">Suspension cable dehumidification and monitoring system</title>
+<desc id="desc">Conceptual diagram of an airtight cable wrapping, dry-air injection through a wire bundle, humidity measurement and acoustic wire-break monitoring. Based on SRC-0048 and SRC-0049.</desc>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1f2937"/></marker></defs>
+<rect width="900" height="420" fill="#ffffff"/>
+<rect x="155" y="145" width="585" height="125" rx="62" fill="#e5e7eb" stroke="#1f2937" stroke-width="5"/>
+<g fill="#9ca3af" stroke="#1f2937" stroke-width="1.5">
+<circle cx="260" cy="207" r="18"/><circle cx="305" cy="185" r="18"/><circle cx="305" cy="229" r="18"/><circle cx="350" cy="207" r="18"/>
+<circle cx="445" cy="185" r="18"/><circle cx="445" cy="229" r="18"/><circle cx="490" cy="207" r="18"/><circle cx="535" cy="185" r="18"/><circle cx="535" cy="229" r="18"/><circle cx="580" cy="207" r="18"/>
+</g>
+<path d="M70 207 H145" stroke="#2563eb" stroke-width="7" marker-end="url(#a)"/>
+<text x="90" y="178" font-family="Arial, sans-serif" font-size="22" fill="#2563eb">dry air</text>
+<path d="M225 110 H665" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 8" marker-end="url(#a)"/>
+<text x="445" y="88" font-family="Arial, sans-serif" font-size="21" text-anchor="middle" fill="#2563eb">air moves through voids between wires</text>
+<rect x="350" y="305" width="160" height="58" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="3"/>
+<text x="430" y="338" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#1f2937">humidity sensor</text>
+<rect x="570" y="305" width="185" height="58" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="3"/>
+<text x="662" y="330" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#1f2937">acoustic wire-break</text><text x="662" y="352" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#1f2937">monitoring</text>
+<path d="M430 305 V275 M662 305 V275" stroke="#1f2937" stroke-width="3"/>
+<text x="450" y="395" font-family="Arial, sans-serif" font-size="19" text-anchor="middle" fill="#374151">airtight wrapping makes the internal environment controllable</text>
+</svg>
