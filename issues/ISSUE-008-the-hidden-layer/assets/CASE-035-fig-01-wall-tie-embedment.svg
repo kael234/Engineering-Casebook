@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+<title id="title">Cavity wall tie embedment under wind suction</title>
+<desc id="desc">Conceptual section through a cavity wall showing inner and outer masonry leaves, a wall tie, wind suction on the outer leaf and the specified minimum 50 millimetre embedment requirement. Based on SRC-0046.</desc>
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1f2937"/></marker></defs>
+<rect width="900" height="420" fill="#ffffff"/>
+<rect x="170" y="70" width="170" height="280" fill="#d1d5db" stroke="#1f2937" stroke-width="4"/>
+<rect x="560" y="70" width="170" height="280" fill="#e5e7eb" stroke="#1f2937" stroke-width="4"/>
+<text x="255" y="55" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" fill="#1f2937">inner leaf</text>
+<text x="645" y="55" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" fill="#1f2937">outer leaf</text>
+<line x1="280" y1="210" x2="620" y2="210" stroke="#d97706" stroke-width="10"/>
+<circle cx="280" cy="210" r="9" fill="#1f2937"/><circle cx="620" cy="210" r="9" fill="#1f2937"/>
+<path d="M610 255 H730" stroke="#2563eb" stroke-width="4"/>
+<path d="M610 245 V265 M730 245 V265" stroke="#2563eb" stroke-width="4"/>
+<text x="670" y="292" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#2563eb">specified minimum embedment: 50 mm</text>
+<path d="M790 120 H740" stroke="#1f2937" stroke-width="4" marker-end="url(#a)"/>
+<path d="M790 210 H740" stroke="#1f2937" stroke-width="4" marker-end="url(#a)"/>
+<path d="M790 300 H740" stroke="#1f2937" stroke-width="4" marker-end="url(#a)"/>
+<text x="790" y="95" font-family="Arial, sans-serif" font-size="21" text-anchor="middle" fill="#1f2937">wind suction</text>
+<text x="450" y="185" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#374151">cavity width consumes available tie length</text>
+</svg>

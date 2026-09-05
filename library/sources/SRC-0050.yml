@@ -1,0 +1,10 @@
+schema_version: 1
+id: SRC-0050
+title: Elliott Bay Seawall Existing Conditions Report
+organisation: City of Seattle
+publication_date: 2008-10
+source_type: government_existing_conditions_report
+authority_tier: A
+url: https://www.seattle.gov/documents/departments/waterfront/usace_seawall_existing_conditions_report.pdf
+accessed_on: 2026-09-03
+redistribution: linked_only

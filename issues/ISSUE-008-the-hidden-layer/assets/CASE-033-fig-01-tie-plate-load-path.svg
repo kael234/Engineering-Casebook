@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+<title id="title">Fern Hollow bridge leg-to-shoe transition and critical tie plate</title>
+<desc id="desc">Editorial schematic showing an inclined steel bridge leg tapering into a shoe, with the transverse tie plate highlighted as a nonredundant tension component and water and debris accumulating near the base. Source IDs SRC-0042 and SRC-0043.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1f2937"/></marker></defs>
+<rect width="900" height="420" fill="#ffffff"/>
+<path d="M235 55 L500 280 L440 335 L170 105 Z" fill="#d1d5db" stroke="#1f2937" stroke-width="4"/>
+<rect x="430" y="260" width="115" height="32" rx="4" fill="#dc2626" stroke="#1f2937" stroke-width="3" transform="rotate(40 487 276)"/>
+<path d="M430 336 L620 336 L660 382 L390 382 Z" fill="#9ca3af" stroke="#1f2937" stroke-width="4"/>
+<path d="M495 225 L560 275" stroke="#1f2937" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="570" y="282" font-family="Arial, sans-serif" font-size="22" fill="#1f2937">tension at transition</text>
+<path d="M650 80 C620 130 600 190 575 260" fill="none" stroke="#2563eb" stroke-width="6" marker-end="url(#arrow)"/>
+<text x="620" y="64" font-family="Arial, sans-serif" font-size="22" fill="#2563eb">runoff from clogged drainage</text>
+<ellipse cx="540" cy="346" rx="95" ry="24" fill="#d97706" opacity="0.65"/>
+<text x="600" y="325" font-family="Arial, sans-serif" font-size="21" fill="#1f2937">wet debris trap</text>
+<path d="M635 315 L575 337" stroke="#1f2937" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="120" y="392" font-family="Arial, sans-serif" font-size="20" fill="#374151">Highlighted plate is schematic, not an as-built section.</text>
+</svg>
