@@ -10,25 +10,25 @@ page_count_override_reason: Four pages keep the deep dive readable, keep the pai
 original_format: magazine_v3
 diagnostic: false
 slots:
-- role: deep_dive
-  case_id: CASE-033
-- role: site_problem
-  case_id: CASE-034
-- role: detail_product
-  case_id: CASE-035
-- role: engineering_win_structural
-  case_id: CASE-036
-- role: engineering_win_geotechnical
-  case_id: CASE-037
+  - role: deep_dive
+    case_id: CASE-033
+  - role: site_problem
+    case_id: CASE-034
+  - role: detail_product
+    case_id: CASE-035
+  - role: engineering_win_structural
+    case_id: CASE-036
+  - role: engineering_win_geotechnical
+    case_id: CASE-037
 markdown: issue.md
 snapshots:
   cases: snapshots/cases.md
   sources: snapshots/sources.yml
 assets:
-- assets/CASE-033-fig-01-tie-plate-load-path.svg
-- assets/CASE-033-fig-02-inspection-to-action.svg
-- assets/CASE-034-fig-01-basal-liquefaction-runout.svg
-- assets/CASE-035-fig-01-wall-tie-embedment.svg
-- assets/CASE-036-fig-01-cable-dehumidification-monitoring.svg
-- assets/CASE-037-fig-01-cellular-jet-grout-seawall.svg
+  - assets/CASE-033-fig-01-tie-plate-load-path.svg
+  - assets/CASE-033-fig-02-inspection-to-action.svg
+  - assets/CASE-034-fig-01-basal-liquefaction-runout.svg
+  - assets/CASE-035-fig-01-wall-tie-embedment.svg
+  - assets/CASE-036-fig-01-cable-dehumidification-monitoring.svg
+  - assets/CASE-037-fig-01-cellular-jet-grout-seawall.svg
 note: Research/editorial source package complete. Page count remains provisional until deterministic rendering and mechanical/visual validation by the publisher workflow.
