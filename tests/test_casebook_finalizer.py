@@ -254,6 +254,16 @@ class IssueReferenceTests(unittest.TestCase):
         self.assertEqual(meta["assets"], ["assets/a.svg", "assets/b.svg"])
         self.assertIsNone(meta["page_count_override_reason"])
 
+    def test_parse_issue_yml_accepts_valid_indentationless_sequences(self):
+        text = self.issue_text().replace("  - {role:", "- {role:").replace(
+            "  - assets/", "- assets/"
+        )
+
+        meta = parse_issue_yml(text)
+
+        self.assertEqual(meta["slot_count"], 5)
+        self.assertEqual(meta["assets"], ["assets/a.svg", "assets/b.svg"])
+
     def test_missing_referenced_asset_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             issue_dir = pathlib.Path(td)
