@@ -4,7 +4,7 @@ number: 8
 title: The Hidden Layer
 publication_date: 2026-09-03
 revision: 1
-status: rendered
+status: published
 page_count: 4
 page_count_override_reason: Four pages keep the deep dive readable, keep the paired
   practice cases together, and give each engineering win a teaching-scale figure without
@@ -33,8 +33,7 @@ assets:
 - assets/CASE-035-fig-01-wall-tie-embedment.svg
 - assets/CASE-036-fig-01-cable-dehumidification-monitoring.svg
 - assets/CASE-037-fig-01-cellular-jet-grout-seawall.svg
-note: PDF and preview generated deterministically and mechanically validated by GitHub
-  Actions; awaiting visual publication review.
+note: PDF and preview generated deterministically, mechanically validated, and visually approved.
 pdf:
   path: ISSUE-008-the-hidden-layer.pdf
   byte_size: 68282
@@ -46,4 +45,4 @@ preview:
 render:
   renderer: casebook-renderer/1
   mechanical_validation: passed
-  visual_review: pending
+  visual_review: passed
