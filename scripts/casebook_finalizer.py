@@ -325,7 +325,9 @@ def parse_issue_yml(issue_yml_text: str) -> dict:
         raise FinalizerError("issue.yml page_count must be a plain integer")
 
     slot_lines = blocks.get("slots", [])
-    slot_count = sum(1 for line in slot_lines[1:] if re.match(r"^\s{2}-\s+", line))
+    slot_count = sum(
+        1 for line in slot_lines[1:] if re.match(r"^(?: {2})?-\s+", line)
+    )
     if slot_count <= 0:
         raise FinalizerError("issue.yml has no slots")
 
@@ -343,7 +345,7 @@ def parse_issue_yml(issue_yml_text: str) -> dict:
 
     assets: list[str] = []
     for line in blocks.get("assets", [])[1:]:
-        match = re.match(r"^\s{2}-\s+(.+?)\s*$", line)
+        match = re.match(r"^(?: {2})?-\s+(.+?)\s*$", line)
         if match:
             assets.append(_plain_scalar(match.group(1)))
     if not assets:
