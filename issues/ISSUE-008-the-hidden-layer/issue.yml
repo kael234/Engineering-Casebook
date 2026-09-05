@@ -4,31 +4,46 @@ number: 8
 title: The Hidden Layer
 publication_date: 2026-09-03
 revision: 1
-status: draft
+status: rendered
 page_count: 4
-page_count_override_reason: Four pages keep the deep dive readable, keep the paired practice cases together, and give each engineering win a teaching-scale figure without compressing the closing synthesis.
+page_count_override_reason: Four pages keep the deep dive readable, keep the paired
+  practice cases together, and give each engineering win a teaching-scale figure without
+  compressing the closing synthesis.
 original_format: magazine_v3
 diagnostic: false
 slots:
-  - role: deep_dive
-    case_id: CASE-033
-  - role: site_problem
-    case_id: CASE-034
-  - role: detail_product
-    case_id: CASE-035
-  - role: engineering_win_structural
-    case_id: CASE-036
-  - role: engineering_win_geotechnical
-    case_id: CASE-037
+- role: deep_dive
+  case_id: CASE-033
+- role: site_problem
+  case_id: CASE-034
+- role: detail_product
+  case_id: CASE-035
+- role: engineering_win_structural
+  case_id: CASE-036
+- role: engineering_win_geotechnical
+  case_id: CASE-037
 markdown: issue.md
 snapshots:
   cases: snapshots/cases.md
   sources: snapshots/sources.yml
 assets:
-  - assets/CASE-033-fig-01-tie-plate-load-path.svg
-  - assets/CASE-033-fig-02-inspection-to-action.svg
-  - assets/CASE-034-fig-01-basal-liquefaction-runout.svg
-  - assets/CASE-035-fig-01-wall-tie-embedment.svg
-  - assets/CASE-036-fig-01-cable-dehumidification-monitoring.svg
-  - assets/CASE-037-fig-01-cellular-jet-grout-seawall.svg
-note: Research/editorial source package complete. Page count remains provisional until deterministic rendering and mechanical/visual validation by the publisher workflow.
+- assets/CASE-033-fig-01-tie-plate-load-path.svg
+- assets/CASE-033-fig-02-inspection-to-action.svg
+- assets/CASE-034-fig-01-basal-liquefaction-runout.svg
+- assets/CASE-035-fig-01-wall-tie-embedment.svg
+- assets/CASE-036-fig-01-cable-dehumidification-monitoring.svg
+- assets/CASE-037-fig-01-cellular-jet-grout-seawall.svg
+note: PDF and preview generated deterministically and mechanically validated by GitHub
+  Actions; awaiting visual publication review.
+pdf:
+  path: ISSUE-008-the-hidden-layer.pdf
+  byte_size: 68282
+  sha256: 7c559b1ded795d1ff643dc84f46dbcd2926b36f908f1e45748e12d2e242b0c19
+preview:
+  path: preview.jpg
+  byte_size: 253956
+  sha256: af61c28f5b2cd653685c2450df36df4ea06d6d791a382d3cb6435550ef5275d8
+render:
+  renderer: casebook-renderer/1
+  mechanical_validation: passed
+  visual_review: pending
